@@ -4,16 +4,14 @@
 #include <string>
 using namespace std;
 
-// ====================== Validation Utils ======================
-
 template <typename T>
-T safeInput(const string& prompt)
+T safeInput(const string& promptMsg)
 {
     T value;
     bool isValid = false;
     while (!isValid)
     {
-        cout << prompt;
+        cout << promptMsg;
         cin >> value;
         if (!cin.fail())
         {
@@ -32,7 +30,6 @@ T safeInput(const string& prompt)
 bool allDigits(const string& strParm)
 {
     bool isValid = true;
-
     if (strParm.empty())
     {
         isValid = false;
@@ -48,14 +45,12 @@ bool allDigits(const string& strParm)
             }
         }
     }
-
     return isValid;
 }
 
 bool validateEmployeeID(const string& idParm)
 {
     bool isValid = true;
-
     if (idParm.empty())
     {
         isValid = true;
@@ -78,7 +73,6 @@ bool validateEmployeeID(const string& idParm)
                 break;
             }
         }
-
         if (isValid)
         {
             char sType = idParm[7];
@@ -88,14 +82,12 @@ bool validateEmployeeID(const string& idParm)
             }
         }
     }
-
     return isValid;
 }
 
 bool validateName(const string& nameParm)
 {
     bool isValid = true;
-
     if (nameParm.empty())
     {
         isValid = false;
@@ -112,48 +104,44 @@ bool validateName(const string& nameParm)
             }
         }
     }
-
     return isValid;
 }
 
-bool validateGender(const string& g)
+bool validateGender(const string& genderParm)
 {
     bool isValid = true;
-
-    if (g.size() != 1)
+    if (genderParm.size() != 1)
     {
         isValid = false;
     }
     else
     {
-        char c = g[0];
+        char c = genderParm[0];
         if (!(c == 'M' || c == 'm' || c == 'F' || c == 'f'))
         {
             isValid = false;
         }
     }
-
     return isValid;
 }
 
-bool validateDate(const string& d)
+bool validateDate(const string& dateParm)
 {
     bool isValid = true;
 
-    if (d.size() != 10)
+    if (dateParm.size() != 10)
     {
         isValid = false;
     }
-    else if (d[4] != '-' || d[7] != '-')
+    else if (dateParm[4] != '-' || dateParm[7] != '-')
     {
         isValid = false;
     }
     else
     {
-        string sYearStr = d.substr(0, 4);
-        string sMonthStr = d.substr(5, 2);
-        string sDayStr = d.substr(8, 2);
-
+        string sYearStr = dateParm.substr(0, 4);
+        string sMonthStr = dateParm.substr(5, 2);
+        string sDayStr = dateParm.substr(8, 2);
         if (!allDigits(sYearStr) || !allDigits(sMonthStr) || !allDigits(sDayStr))
         {
             isValid = false;
@@ -171,7 +159,6 @@ bool validateDate(const string& d)
             }
         }
     }
-
     return isValid;
 }
 
@@ -188,6 +175,150 @@ void MenuHandler::pPrintMainMenu() const
     cout << "--------------------------------------------------\n";
 }
 
+void MenuHandler::pHandleAddRandomEmployee()
+{
+    string sId;
+    while (!validateEmployeeID(sId))
+    {
+        cout << "Invalid ID format! Try again: ";
+        getline(cin, sId);
+    }
+    mManager.addRandomEmployee(sId);
+}
+
+void MenuHandler::pHandleAddSpecificEmployee()
+{
+    int sType;
+    bool validType = false;
+    while (!validType)
+    {
+        sType = safeInput<int>("Type (0=FullTime,1=Contractor,2=Intern): ");
+        if (sType >= xyz::FullTime && sType <= xyz::Intern)
+        {
+            validType = true;
+        }
+        else
+        {
+            cout << "Invalid type! Try Again" << endl;
+        }
+    }
+
+    string sId;
+    bool validID = false;
+    while (!validID)
+    {
+        cout << "Enter ID: ";
+        getline(cin, sId);
+        if (validateEmployeeID(sId))
+        {
+            validID = true;
+        }
+        else
+        {
+            cout << "Invalid ID format!" << endl;
+        }
+    }
+
+    string sName;
+    while (true)
+    {
+        cout << "Enter Name: ";
+        getline(cin, sName);
+        if (validateName(sName))
+        {
+            break;
+        }
+        cout << "Invalid name!" << endl;
+    }
+
+    string sGender;
+    while (true)
+    {
+        cout << "Enter Gender (M/F): ";
+        getline(cin, sGender);
+        if (validateGender(sGender))
+        {
+            break;
+        }
+        cout << "Invalid gender!" << endl;
+    }
+
+    string sDob;
+    while (true)
+    {
+        cout << "Enter DOB (YYYY-MM-DD): ";
+        getline(cin, sDob);
+        if (validateDate(sDob))
+        {
+            break;
+        }
+        cout << "Invalid date format!" << endl;
+    }
+
+    string sDoj;
+    while (true)
+    {
+        cout << "Enter DOJ (YYYY-MM-DD): ";
+        getline(cin, sDoj);
+        if (validateDate(sDoj))
+        {
+            break;
+        }
+        cout << "Invalid date format!" << endl;
+    }
+
+    // Employee creation by type
+    switch (sType)
+    {
+        case xyz::FullTime:
+        {
+            int sLeavesAvailed = safeInput<int>("Leaves Availed: ");
+            int sLeavesApplied = safeInput<int>("Leaves Applied: ");
+            mManager.addFullTime(sName, sGender, sDob, sDoj, sLeavesAvailed, sLeavesApplied, sId);
+            break;
+        }
+
+        case xyz::Contractor:
+        {
+            int sAgency = safeInput<int>("Agency (0=Avengers,1=JusticeLeague,2=XMen): ");
+            mManager.addContractor(sName, sGender, sDob, sDoj, (xyz::ContractorAgency)sAgency, sId);
+            break;
+        }
+        case xyz::Intern:
+        {
+            int sCollege = safeInput<int>("College (0-6): ");
+            int sBranch  = safeInput<int>("Branch (0-2): ");
+            mManager.addIntern(sName, sGender, sDob, sDoj, (xyz::InternCollege)sCollege, (xyz::InternBranch)sBranch, sId);
+            break;
+        }
+    }
+}
+
+void MenuHandler::pHandleAddMultipleRandomEmployees()
+{
+    int sCount = 0;
+    bool validInput = false;
+    while (!validInput)
+    {
+        sCount = safeInput<int>("No. of random employees to add : ");
+        if (sCount > 0)
+        {
+            validInput = true;
+        }
+        else
+        {
+            std::cout << "Invalid input! Please enter a positive number.\n";
+        }
+    }
+    for (int sIdx = 0; sIdx < sCount; sIdx++)
+    {
+        mManager.addRandomEmployee();
+    }
+
+    std::cout << sCount << " random employees added successfully.\n";
+}
+
+
 void MenuHandler::pHandleAddEmployee()
 {
     cout << "---------------------------------------------------------\n";
@@ -195,200 +326,42 @@ void MenuHandler::pHandleAddEmployee()
     cout << "---------------------------------------------------------\n";
     cout << "| 1. Add Random Employee                                |\n";
     cout << "| 2. Add Specific Employee (FullTime/Contractor/Intern) |\n";
-    cout << "| 3. Add Multiple Random Employees                      |\n";
+    cout << "| 3. Add n Number Of Random Employees                   |\n";
     cout << "| (-1 to Go Back)                                       |\n";
     cout << "---------------------------------------------------------\n";
 
     int sChoice = safeInput<int>("Your Choice: ");
 
-    if (sChoice == xyz::RandomEmployee)
+    switch (sChoice)
     {
-        string sId;
-        cout << "Enter ID (blank for auto): ";
-        getline(cin, sId);
-        while (!validateEmployeeID(sId))
-        {
-            cout << "Invalid ID format! Try again: ";
-            getline(cin, sId);
-        }
-        mManager.addRandomEmployee(sId);
-    }
-    else if (sChoice == xyz::SpecificEmployee)
-    {
-        int sType;
-        bool validType = false;
-        while (!validType)
-        {
-            sType = safeInput<int>("Type (0=FullTime,1=Contractor,2=Intern): ");
-            if (sType >= 0 && sType <= 2)
-            {
-                validType = true;
-            }
-            else
-            {
-                cout << "Invalid type!" << endl;
-            }
-        }
+        case xyz::RandomEmployee:
+            pHandleAddRandomEmployee();
+            break;
 
-        string sId;
-        bool validID = false;
-        while (!validID)
-        {
-            cout << "Enter ID (blank for auto): ";
-            getline(cin, sId);
-            if (validateEmployeeID(sId))
-            {
-                validID = true;
-            }
-            else
-            {
-                cout << "Invalid ID format!" << endl;
-            }
-        }
+        case xyz::SpecificEmployee:
+            pHandleAddSpecificEmployee();
+            break;
 
-        string sName;
-        bool validName = false;
-        while (!validName)
-        {
-            cout << "Enter Name: ";
-            getline(cin, sName);
-            if (validateName(sName))
-            {
-                validName = true;
-            }
-            else
-            {
-                cout << "Invalid name!" << endl;
-            }
-        }
+        case xyz::MultipleRandomEmployees:
+            pHandleAddMultipleRandomEmployees();
+            break;
 
-        string sGender;
-        bool validGender = false;
-        while (!validGender)
-        {
-            cout << "Enter Gender (M/F): ";
-            getline(cin, sGender);
-            if (validateGender(sGender))
-            {
-                validGender = true;
-            }
-            else
-            {
-                cout << "Invalid gender!" << endl;
-            }
-        }
+        case xyz::BackMenu1:
+            cout << "Returning to main menu..." << endl;
+            return;
 
-        string sDob;
-        bool validDOB = false;
-        while (!validDOB)
-        {
-            cout << "Enter DOB (YYYY-MM-DD): ";
-            getline(cin, sDob);
-            if (validateDate(sDob))
-            {
-                validDOB = true;
-            }
-            else
-            {
-                cout << "Invalid date format!" << endl;
-            }
-        }
-
-        string sDoj;
-        bool validDOJ = false;
-        while (!validDOJ)
-        {
-            cout << "Enter DOJ (YYYY-MM-DD): ";
-            getline(cin, sDoj);
-            if (validateDate(sDoj))
-            {
-                validDOJ = true;
-            }
-            else
-            {
-                cout << "Invalid date format!" << endl;
-            }
-        }
-
-        if (sType == xyz::FullTime)
-        {
-            int sLeaves = safeInput<int>("Leaves Used: ");
-            mManager.addFullTime(sName, sGender, sDob, sDoj, sLeaves, sId);
-        }
-        else if (sType == xyz::Contractor)
-        {
-            int sAgency;
-            bool validAgency = false;
-            while (!validAgency)
-            {
-                sAgency = safeInput<int>("Agency (0-2): ");
-                if (sAgency >= 0 && sAgency <= 2)
-                {
-                    validAgency = true;
-                }
-                else
-                {
-                    cout << "Invalid!\n";
-                }
-            }
-            mManager.addContractor(sName, sGender, sDob, sDoj, (xyz::ContractorAgency)sAgency, sId);
-        }
-        else
-        {
-            int sCollege;
-            int sBranch;
-            bool validCollege = false;
-            bool validBranch = false;
-
-            while (!validCollege)
-            {
-                sCollege = safeInput<int>("College (0-6): ");
-                if (sCollege >= 0 && sCollege <= 6)
-                {
-                    validCollege = true;
-                }
-                else
-                {
-                    cout << "Invalid!\n";
-                }
-            }
-
-            while (!validBranch)
-            {
-                sBranch = safeInput<int>("Branch (0-2): ");
-                if (sBranch >= 0 && sBranch <= 2)
-                {
-                    validBranch = true;
-                }
-                else
-                {
-                    cout << "Invalid!\n";
-                }
-            }
-
-            mManager.addIntern(sName, sGender, sDob, sDoj, (xyz::InternCollege)sCollege, (xyz::InternBranch)sBranch, sId);
-        }
-    }
-    else if (sChoice == xyz::MultipleRandomEmployees)
-    {
-        int count = safeInput<int>("How many? ");
-        for (int sIdx = 0; sIdx < count; ++sIdx)
-        {
-            mManager.addRandomEmployee();
-        }
-    }
-    else
-    {
-        // go back
+        default:
+            cout << "Invalid Input! Try Again." << endl;
+            break;
     }
 }
+
 
 void MenuHandler::pHandleRemoveEmployee()
 {
     string sId;
     cout << "Employee ID: ";
     cin >> sId;
-
     if (!mManager.removeEmployeeById(sId))
     {
         cout << "Not found.\n";
@@ -397,69 +370,102 @@ void MenuHandler::pHandleRemoveEmployee()
 
 void MenuHandler::pHandleGetEmpDetails()
 {
-    cout << "--------------------------------------------------\n";
-    cout << "|             Employee Details Menu              |\n";
-    cout << "--------------------------------------------------\n";
-    cout << "| 1. All Employees Summary                       |\n";
-    cout << "| 2. By Type (FullTime/Contractor/Intern)        |\n";
-    cout << "| 3. By Gender                                   |\n";
-    cout << "| 4. By Status (Active/Inactive/Resigned)        |\n";
-    cout << "| 5. By Employee ID                              |\n";
-    cout << "| (-1 to Go Back)                                |\n";
-    cout << "--------------------------------------------------\n";
+    std::cout << "--------------------------------------------------\n";
+    std::cout << "|             Employee Details Menu              |\n";
+    std::cout << "--------------------------------------------------\n";
+    std::cout << "| 1. All Employees Summary                       |\n";
+    std::cout << "| 2. By Type (FullTime/Contractor/Intern)        |\n";
+    std::cout << "| 3. By Gender                                   |\n";
+    std::cout << "| 4. By Status (Active/Inactive/Resigned)        |\n";
+    std::cout << "| 5. By Employee ID                              |\n";
+    std::cout << "| (-1 to Go Back)                                |\n";
+    std::cout << "--------------------------------------------------\n";
 
     int sChoice = safeInput<int>("Your Choice: ");
     EmployeeFilter sFilter;
 
-    if (sChoice == xyz::AllEmployees)
+    switch (sChoice)
     {
-        mManager.print(sFilter);
-    }
-    else if (sChoice == xyz::ByType)
-    {
-        int sType = safeInput<int>("Type (0-2): ");
-        sFilter.mEnableType = true;
-        sFilter.mType = (xyz::EmployeeType)sType;
-        mManager.print(sFilter);
-    }
-    else if (sChoice == xyz::ByGender)
-    {
-        string sGender;
-        cout << "Gender (M/F): ";
-        cin >> sGender;
-
-        if (validateGender(sGender))
+        case xyz::AllEmployees:
         {
-            sFilter.mEnableGender = true;
-            sFilter.mGender = sGender;
             mManager.print(sFilter);
+            break;
         }
-        else
+        case xyz::ByType:
         {
-            cout << "Invalid gender!\n";
+            int sType = safeInput<int>("Type (0=FullTime,1=Contractor,2=Intern): ");
+
+            if (sType >= 0 && sType < xyz::EmployeeTypeCount)
+            {
+                sFilter.mEnableType = true;
+                sFilter.mType = (xyz::EmployeeType)sType;
+                mManager.print(sFilter);
+            }
+            else
+            {
+                std::cout << "Invalid employee type!" <<endl;
+            }
+            break;
         }
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    }
-    else if (sChoice == xyz::ByStatus)
-    {
-        int sStatus = safeInput<int>("Status (0-2): ");
-        sFilter.mEnableStatus = true;
-        sFilter.mStatus = (xyz::EmployeeStatus)sStatus;
-        mManager.print(sFilter);
-    }
-    else if (sChoice == xyz::ByID)
-    {
-        string sId;
-        cout << "Enter ID: ";
-        cin >> sId;
-        sFilter.mEnableId = true;
-        sFilter.mId = sId;
-        mManager.print(sFilter);
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    }
-    else
-    {
-        // back
+        case xyz::ByGender:
+        {
+            std::string sGender;
+            std::cout << "Gender (M/F): ";
+            std::cin >> sGender;
+            if (validateGender(sGender))
+            {
+                sFilter.mEnableGender = true;
+                sFilter.mGender = sGender;
+                mManager.print(sFilter);
+            }
+            else
+            {
+                std::cout << "Invalid gender!" << endl;
+            }
+
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            break;
+        }
+
+        case xyz::ByStatus:
+        {
+            int sStatus = safeInput<int>("Status (0=Active,1=Inactive,2=Resigned): ");
+
+            if (sStatus >= 0 && sStatus < xyz::EmployeeStatusCount)
+            {
+                sFilter.mEnableStatus = true;
+                sFilter.mStatus = (xyz::EmployeeStatus)sStatus;
+                mManager.print(sFilter);
+            }
+            else
+            {
+                std::cout << "Invalid status!" << endl;
+            }
+            break;
+        }
+        case xyz::ByID:
+        {
+            std::string sId;
+            std::cout << "Enter ID: ";
+            std::cin >> sId;
+
+            sFilter.mEnableId = true;
+            sFilter.mId = sId;
+            mManager.print(sFilter);
+
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            break;
+        }
+        case xyz::BackMenu2:
+        {
+            std::cout << "Returning to previous menu..." << endl;
+            break;
+        }
+        default:
+        {
+            std::cout << "Invalid choice! Try again." << endl;
+            break;
+        }
     }
 }
 
@@ -477,79 +483,101 @@ void MenuHandler::pHandleOthers()
 
     int sChoice = safeInput<int>("Your Choice: ");
 
-    if (sChoice == xyz::AddLeaves)
+    switch (sChoice)
     {
-        int sLeaves = safeInput<int>("Leaves to add: ");
-        mManager.addLeavesToFullTime(sLeaves);
-    }
-    else if (sChoice == xyz::ConvertIntern)
-    {
-        string sId;
-        cout << "Intern ID: ";
-        cin >> sId;
-        mManager.convertInternToFullTime(sId);
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    }
-    else if (sChoice == xyz::SearchByID)
-    {
-        string sId;
-        cout << "Enter ID: ";
-        cin >> sId;
-        EmployeeFilter sFilter;
-        sFilter.mEnableId = true;
-        sFilter.mId = sId;
-        mManager.print(sFilter);
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    }
-    else if (sChoice == xyz::SearchByName)
-    {
-        string sName;
-        cout << "Enter name: ";
-        cin >> sName;
-        EmployeeFilter sFilter;
-        sFilter.mEnableNameSearch = true;
-        sFilter.mNameSearch = sName;
-        mManager.print(sFilter);
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    }
-    else
-    {
-        // back
+        case xyz::AddLeaves:
+        {
+            int sLeaves = safeInput<int>("Leaves to add: ");
+            mManager.addLeavesToFullTime(sLeaves);
+            break;
+        }
+
+        case xyz::ConvertIntern:
+        {
+            std::string sId;
+            cout << "Intern ID: ";
+            cin >> sId;
+            mManager.convertInternToFullTime(sId);
+            cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            break;
+        }
+
+        case xyz::SearchByID:
+        {
+            std::string sId;
+            cout << "Enter ID: ";
+            cin >> sId;
+
+            EmployeeFilter sFilter;
+            sFilter.mEnableId = true;
+            sFilter.mId = sId;
+
+            mManager.print(sFilter);
+            cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            break;
+        }
+
+        case xyz::SearchByName:
+        {
+            std::string sName;
+            cout << "Enter name: ";
+            cin.ignore();
+            std::getline(cin, sName);
+
+            EmployeeFilter sFilter;
+            sFilter.mEnableNameSearch = true;
+            sFilter.mNameSearch = sName;
+
+            mManager.print(sFilter);
+            break;
+        }
+
+        case xyz::BackMenu3:
+        {
+            cout << "Returning to main menu...\n";
+            break;
+        }
+
+        default:
+        {
+            cout << "Invalid Input! Try again." << endl;
+            break;
+        }
     }
 }
 
 void MenuHandler::start()
 {
     bool sRun = true;
-
     while (sRun)
     {
         pPrintMainMenu();
         int sChoice = safeInput<int>("Your Choice: ");
+        switch (sChoice)
+        {
+            case xyz::AddEmployee:
+                pHandleAddEmployee();
+                break;
 
-        if (sChoice == xyz::AddEmployee)
-        {
-            pHandleAddEmployee();
-        }
-        else if (sChoice == xyz::RemoveEmployee)
-        {
-            pHandleRemoveEmployee();
-        }
-        else if (sChoice == xyz::GetEmpDetails)
-        {
-            pHandleGetEmpDetails();
-        }
-        else if (sChoice == xyz::Others)
-        {
-            pHandleOthers();
-        }
-        else if (sChoice == xyz::Exit)
-        {
-            sRun = false;
-        }
-        else
-        {
-            cout << "Invalid!\n";
+            case xyz::RemoveEmployee:
+                pHandleRemoveEmployee();
+                break;
+
+            case xyz::GetEmpDetails:
+                pHandleGetEmpDetails();
+                break;
+
+            case xyz::Others:
+                pHandleOthers();
+                break;
+
+            case xyz::Exit:
+                sRun = false;
+                break;
+
+            default:
+                std::cout << "Invalid choice! Try again." << endl;
+                break;
         }
     }
 }

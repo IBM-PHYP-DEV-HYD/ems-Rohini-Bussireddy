@@ -4,6 +4,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <sstream>
+#include <iomanip>
 
 XyzEmployeeManager::XyzEmployeeManager() : mNextIdCounter(1) {}
 
@@ -40,289 +41,265 @@ std::string XyzEmployeeManager::pGenerateId(xyz::EmployeeType typeParm)
 
 int XyzEmployeeManager::pFindIndexById(const std::string& idParm) const
 {
-    int sN = mActiveInactiveDeque.getSize();
-    for (int sI = 0; sI < sN; ++sI)
+    int sSize = mActiveInactiveDeque.getSize();
+    for (int sIdx = 0; sIdx < sSize; ++sIdx)
     {
-        XyzEmployee* sEmp = mActiveInactiveDeque[sI];
+        XyzEmployee* sEmp = mActiveInactiveDeque[sIdx];
         if (sEmp && sEmp->getId() == idParm)
         {
-            return sI;
+            return sIdx;
         }
     }
     return -1;
 }
 
 // ---------- Date helpers ----------
-bool XyzEmployeeManager::pParseYmd(const std::string& ymdParm, int& sY, int& sM, int& sD)
+bool XyzEmployeeManager::pParseYmd(const std::string& ymdParm, int& sYear, int& sMonth, int& sDay)
 {
-    if (ymdParm.size() < 10) return false;
-    sY = (ymdParm[0]-'0')*1000 + (ymdParm[1]-'0')*100 + (ymdParm[2]-'0')*10 + (ymdParm[3]-'0');
-    sM = (ymdParm[5]-'0')*10 + (ymdParm[6]-'0');
-    sD = (ymdParm[8]-'0')*10 + (ymdParm[9]-'0');
+    if (ymdParm.size() < 10)
+    {
+        return false;
+    }
+    sYear = (ymdParm[0]-'0')*1000 + (ymdParm[1]-'0')*100 + (ymdParm[2]-'0')*10 + (ymdParm[3]-'0');
+    sMonth = (ymdParm[5]-'0')*10 + (ymdParm[6]-'0');
+    sDay = (ymdParm[8]-'0')*10 + (ymdParm[9]-'0');
     return true;
 }
-bool XyzEmployeeManager::pIsLeap(int sY)
+bool XyzEmployeeManager::pIsLeap(int yearParm)
 {
-    return ( (sY%4==0 && sY%100!=0) || (sY%400==0) );
+    return ((yearParm % 4 == 0 && yearParm % 100 != 0) || (yearParm % 400 == 0));
 }
-int XyzEmployeeManager::pDaysInMonth(int sY, int sM)
+int XyzEmployeeManager::pDaysInMonth(int yearParm, int monthParm)
 {
-    static const int sDm[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
-    if (sM==2)
+    static const int sDaysPerMonth[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
+    if (monthParm == 2)
     {
-        return pIsLeap(sY) ? 29 : 28;
+        return pIsLeap(yearParm) ? 29 : 28;
     }
-    return sDm[sM-1];
+    return sDaysPerMonth[monthParm - 1];
 }
-std::string XyzEmployeeManager::pYmd(int sY, int sM, int sD)
+std::string XyzEmployeeManager::pYmd(int yearParm, int monthParm, int dayParm)
 {
-    // zero pad with string logic
-    std::string sYStr, sMStr, sDStr;
-    {
-        std::ostringstream sO; sO<<sY; sYStr=sO.str();
-    }
-    {
-        sMStr = (sM<10? "0":""); std::ostringstream sO; sO<<sM; sMStr += sO.str();
-    }
-    {
-        sDStr = (sD<10? "0":""); std::ostringstream sO; sO<<sD; sDStr += sO.str();
-    }
-    return sYStr + "-" + sMStr + "-" + sDStr;
+    std::ostringstream sStream;
+    sStream << std::setfill('0')
+            << std::setw(4) << yearParm << "-"
+            << std::setw(2) << monthParm << "-"
+            << std::setw(2) << dayParm;
+    return sStream.str();
 }
+
 std::string XyzEmployeeManager::pAddMonths(const std::string& ymdParm, int monthsParm)
 {
-    int sY, sM, sD; if (!pParseYmd(ymdParm, sY, sM, sD))
+    int sYear, sMonth, sDay;
+    if (!pParseYmd(ymdParm, sYear, sMonth, sDay))
     {
         return "NA";
     }
-    int sTot = sM - 1 + monthsParm;
-    int sNY = sY + sTot/12;
-    int sNM = (sTot%12 + 12)%12 + 1;
-    if (sTot < 0 && (sTot % 12))
+    int sTotalMonths = sMonth - 1 + monthsParm;
+    int sNewYear  = sYear + sTotalMonths / 12;
+    int sNewMonth = (sTotalMonths % 12 + 12) % 12 + 1;
+
+    if (sTotalMonths < 0 && (sTotalMonths % 12))
     {
-        --sNY;   // safety for negatives (not used here)
+        --sNewYear;
     }
-    int sMaxD = pDaysInMonth(sNY, sNM);
-    if (sD > sMaxD) sD = sMaxD;
+    int sMaxDay = pDaysInMonth(sNewYear, sNewMonth);
+    if (sDay > sMaxDay)
     {
-        return pYmd(sNY, sNM, sD);
+        sDay = sMaxDay;
     }
+    return pYmd(sNewYear, sNewMonth, sDay);
 }
 std::string XyzEmployeeManager::pAddYears(const std::string& ymdParm, int yearsParm)
 {
-    int sY, sM, sD; if (!pParseYmd(ymdParm, sY, sM, sD))
+    int sYear, sMonth, sDay;
+    if (!pParseYmd(ymdParm, sYear, sMonth, sDay))
     {
         return "NA";
     }
-    int sNY = sY + yearsParm;
-    int sMaxD = pDaysInMonth(sNY, sM);
-    if (sD > sMaxD) sD = sMaxD;
+    int sNewYear = sYear + yearsParm;
+    int sMaxDay = pDaysInMonth(sNewYear, sMonth);
+
+    if (sDay > sMaxDay)
     {
-        return pYmd(sNY, sM, sD);
+        sDay = sMaxDay;
     }
+    return pYmd(sNewYear, sMonth, sDay);
 }
 std::string XyzEmployeeManager::pTodayYmd()
 {
     std::time_t sNow = std::time(nullptr);
     std::tm* sLt = std::localtime(&sNow);
-    int sY = sLt->tm_year + 1900;
-    int sM = sLt->tm_mon + 1;
-    int sD = sLt->tm_mday;
-    return pYmd(sY, sM, sD);
+    return pYmd(sLt->tm_year + 1900, sLt->tm_mon + 1, sLt->tm_mday);
 }
-std::string XyzEmployeeManager::pProjectedDol(const std::string& dojParm, xyz::EmployeeType typeParm)
+std::string XyzEmployeeManager::pCalculateDol(const std::string& dojParm, xyz::EmployeeType typeParm)
 {
     if (typeParm == xyz::Contractor)
-    {
         return pAddYears(dojParm, 1);
-    }
     if (typeParm == xyz::Intern)
-    {
         return pAddMonths(dojParm, 6);
-    }
     return "NA";
 }
 
-// ---------- Printing helpers ----------
-std::string XyzEmployeeManager::pPad(const std::string& s, int widthParm)
-{
-    if ((int)s.size() >= widthParm) return s.substr(0, widthParm);
-    return s + std::string(static_cast<size_t>(widthParm - static_cast<int>(s.size())), ' ');
-}
-void XyzEmployeeManager::pPrintHeader() const
-{
-    using namespace xyz;
-    std::cout << "----------------------------------------------------------------------------------------------------------------------------------------\n";
-    std::cout << "| " << pPad("Name", NameWidth)
-              << "| " << pPad("ID", IdWidth)
-              << "| " << pPad("Type", TypeWidth)
-              << "| " << pPad("Status", StatusWidth)
-              << "| " << pPad("Gender", GenderWidth)
-              << "| " << pPad("DOB", DobWidth)
-              << "| " << pPad("DOJ", DojWidth)
-              << "| " << pPad("DOL", DolWidth)
-              << "| " << pPad("Extra", ExtraWidth) << "|\n";
-    std::cout << "----------------------------------------------------------------------------------------------------------------------------------------\n";
-}
-void XyzEmployeeManager::pPrintRow(const XyzEmployee* sEmp) const
-{
-    using namespace xyz;
-
-    std::string sTypeStr  = (sEmp->getType() == FullTime ? "FullTime" :
-                            (sEmp->getType() == Contractor ? "Contractor" : "Intern"));
-    std::string sStatusStr = (sEmp->getStatus() == Active ? "Active" :
-                             (sEmp->getStatus() == Inactive ? "Inactive" : "Resigned"));
-
-    // Extra
-    std::string sExtra = "NA";
-    if (sEmp->getType() == FullTime)
-    {
-        const XyzFullTimeEmployee* sF = (const XyzFullTimeEmployee*)sEmp;
-        std::ostringstream sO; sO << "Leaves: " << sF->getLeavesAvailed();
-        sExtra = sO.str();
-    }
-    else if (sEmp->getType() == Contractor)
-    {
-        const XyzContractorEmployee* sC = (const XyzContractorEmployee*)sEmp;
-        xyz::ContractorAgency sAg = sC->getAgency();
-        sExtra = (sAg == Avengers ? "Avengers" : (sAg == JusticeLeague ? "JusticeLeague" : "XMen"));
-    }
-    else
-    {
-        const XyzInternEmployee* sI = (const XyzInternEmployee*)sEmp;
-        std::string sCol = (sI->getCollege() == IitDelhi ? "IIT Delhi" :
-                           sI->getCollege() == IitMumbai ? "IIT Mumbai" :
-                           sI->getCollege() == IitKanpur ? "IIT Kanpur" :
-                           sI->getCollege() == IitHyderabad ? "IIT Hyderabad" :
-                           sI->getCollege() == NitWarangal ? "NIT Warangal" :
-                           sI->getCollege() == NitTiruchi ? "NIT Tiruchi" : "IIIT Hyderabad");
-        std::string sBr  = (sI->getBranch() == Cse ? "CSE" : (sI->getBranch() == Csit ? "CSIT" : "ECE"));
-        sExtra = sCol + " (" + sBr + ")";
-    }
-
-    // Always 9 columns
-    std::cout << "| " << pPad(sEmp->getName(), NameWidth)
-              << "| " << pPad(sEmp->getId(), IdWidth)
-              << "| " << pPad(sTypeStr, TypeWidth)
-              << "| " << pPad(sStatusStr, StatusWidth)
-              << "| " << pPad(sEmp->getGender(), GenderWidth)
-              << "| " << pPad(sEmp->getDob(), DobWidth)
-              << "| " << pPad(sEmp->getDoj(), DojWidth)
-              << "| " << pPad(sEmp->getDol(), DolWidth)
-              << "| " << pPad(sExtra, ExtraWidth) << "|\n";
-}
-
-// ---------- Add / Random ----------
-void XyzEmployeeManager::addFullTime(const std::string& nameParm, const std::string& genderParm, const std::string& dobParm,
-                                     const std::string& dojParm, int leavesParm, const std::string& idParm)
+void XyzEmployeeManager::addFullTime(const std::string& nameParm,
+                                     const std::string& genderParm,
+                                     const std::string& dobParm,
+                                     const std::string& dojParm,
+                                     int leavesAvailedParm,
+                                     int leavesAppliedParm,
+                                     const std::string& idParm)
 {
     std::string sId = (idParm.empty()) ? pGenerateId(xyz::FullTime) : idParm;
-    XyzEmployee* sEmp = new XyzFullTimeEmployee(sId, nameParm, genderParm, xyz::Active, dobParm, dojParm, leavesParm);
-    // DOL for FullTime remains NA
+    XyzEmployee* sEmp = new XyzFullTimeEmployee(
+        sId,
+        nameParm,
+        genderParm,
+        xyz::Active,
+        dobParm,
+        dojParm,
+        leavesAvailedParm,
+        leavesAppliedParm
+    );
     sEmp->setDol("NA");
     mActiveInactiveDeque.pushBack(sEmp);
     std::cout << "Added FullTime with ID: " << sId << std::endl;
 }
 
-void XyzEmployeeManager::addContractor(const std::string& nameParm, const std::string& genderParm, const std::string& dobParm,
-                                       const std::string& dojParm, xyz::ContractorAgency agencyParm, const std::string& idParm)
+
+void XyzEmployeeManager::addContractor(const std::string& nameParm,
+                                       const std::string& genderParm,
+                                       const std::string& dobParm,
+                                       const std::string& dojParm,
+                                       xyz::ContractorAgency agencyParm,
+                                       const std::string& idParm)
 {
     std::string sId = (idParm.empty()) ? pGenerateId(xyz::Contractor) : idParm;
-    XyzEmployee* sEmp = new XyzContractorEmployee(sId, nameParm, genderParm, xyz::Active, dobParm, dojParm, agencyParm);
-    sEmp->setDol(pProjectedDol(dojParm, xyz::Contractor));
+    XyzEmployee* sEmp = new XyzContractorEmployee(
+        sId,
+        nameParm,
+        genderParm,
+        xyz::Active,
+        dobParm,
+        dojParm,
+        agencyParm
+    );
+    sEmp->setDol(pCalculateDol(dojParm, xyz::Contractor));
     mActiveInactiveDeque.pushBack(sEmp);
     std::cout << "Added Contractor with ID: " << sId << std::endl;
 }
 
-void XyzEmployeeManager::addIntern(const std::string& nameParm, const std::string& genderParm, const std::string& dobParm,
-                                   const std::string& dojParm, xyz::InternCollege collegeParm, xyz::InternBranch branchParm, const std::string& idParm)
+void XyzEmployeeManager::addIntern(const std::string& nameParm,
+                                   const std::string& genderParm,
+                                   const std::string& dobParm,
+                                   const std::string& dojParm,
+                                   xyz::InternCollege collegeParm,
+                                   xyz::InternBranch branchParm,
+                                   const std::string& idParm)
 {
     std::string sId = (idParm.empty()) ? pGenerateId(xyz::Intern) : idParm;
-    XyzEmployee* sEmp = new XyzInternEmployee(sId, nameParm, genderParm, xyz::Active, dobParm, dojParm, collegeParm, branchParm);
-    sEmp->setDol(pProjectedDol(dojParm, xyz::Intern));
+    XyzEmployee* sEmp = new XyzInternEmployee(
+        sId,
+        nameParm,
+        genderParm,
+        xyz::Active,
+        dobParm,
+        dojParm,
+        collegeParm,
+        branchParm
+    );
+    sEmp->setDol(pCalculateDol(dojParm, xyz::Intern));
     mActiveInactiveDeque.pushBack(sEmp);
     std::cout << "Added Intern with ID: " << sId << std::endl;
 }
 
-std::string XyzEmployeeManager::pGenerateRandomName(const std::string& genderParm) const
+std::string XyzEmployeeManager::pGenerateRandomName(const std::string& genderParm)
 {
-    static const char* sMaleFirstNames[] = {
-        "Aarav","Vivaan","Aditya","Rohan","Ishaan","Arjun","Karthik","Nikhil","Krishna","Ayan",
-        "Hriday","Manav","Dhruv","Reyansh","Siddharth"
-    };
-    static const char* sFemaleFirstNames[] = {
-        "Ananya","Diya","Aditi","Kavya","Riya","Ira","Saanvi","Aarohi","Priya","Sneha",
-        "Tanya","Nisha","Meera","Aishwarya","Ishita"
-    };
-    static const char* sLastNames[] = {
-        "Sharma","Verma","Patel","Mehta","Reddy","Nair","Kumar","Singh","Das","Chopra",
-        "Gupta","Bhat","Joshi","Rao","Iyer","Menon","Naidu","Pillai","Agarwal","Mukherjee"
-    };
-    bool sIsMale = (genderParm=="M" || genderParm=="m");
-    const char** sFirstList = sIsMale ? sMaleFirstNames : sFemaleFirstNames;
-    int sFirstCount = 15;
-    int sLastCount = 20;
-    const std::string sFirst = sFirstList[std::rand() % sFirstCount];
-    const std::string sLast  = sLastNames[std::rand() % sLastCount];
+    int sFirstIdx = std::rand() % xyz::EmployeeFirstNameCount;
+    int sLastIdx  = std::rand() % xyz::EmployeeLastNameCount;
+    std::string sFirst = xyz::sEmpFirstNames[sFirstIdx];
+    std::string sLast  = xyz::sEmpLastNames[sLastIdx];
     return sFirst + " " + sLast;
 }
 
 void XyzEmployeeManager::addRandomEmployee(const std::string& idParm)
 {
-    int sTypeInt = std::rand() % 3;
-    xyz::EmployeeType sTypeEnum = (sTypeInt == 0 ? xyz::FullTime : (sTypeInt == 1 ? xyz::Contractor : xyz::Intern));
+    int sTypeInt = std::rand() % xyz::EmployeeTypeCount;
+    xyz::EmployeeType sTypeEnum = static_cast<xyz::EmployeeType>(sTypeInt);
     std::string sId = (idParm.empty()) ? pGenerateId(sTypeEnum) : idParm;
 
     std::string sGender = (std::rand() % 2 == 0) ? "M" : "F";
     std::string sName = pGenerateRandomName(sGender);
 
-    int sYear = 1980 + (std::rand() % 25);
-    int sMonth = 1 + (std::rand() % 12);
-    int sDay = 1 + (std::rand() % 28);
+    // DOB + DOJ generation
+    int sYear  = xyz::MinBirthYear + (std::rand() % (xyz::MaxBirthYear - xyz::MinBirthYear + 1));
+    int sMonth = xyz::MinMonth + (std::rand() % (xyz::MaxMonth - xyz::MinMonth + 1));
+    int sDay   = xyz::MinDay + (std::rand() % (xyz::MaxDay - xyz::MinDay + 1));
     std::string sDob = pYmd(sYear, sMonth, sDay);
 
-    int sJoinYear = sYear + 18 + (std::rand() % 30);
-    int sJoinMonth = 1 + (std::rand() % 12);
-    int sJoinDay = 1 + (std::rand() % 28);
+    int sJoinYear  = sYear + xyz::MinWorkAge + (std::rand() % (xyz::MaxWorkAge - xyz::MinWorkAge + 1));
+    int sJoinMonth = xyz::MinMonth + (std::rand() % (xyz::MaxMonth - xyz::MinMonth + 1));
+    int sJoinDay   = xyz::MinDay + (std::rand() % (xyz::MaxDay - xyz::MinDay + 1));
     std::string sDoj = pYmd(sJoinYear, sJoinMonth, sJoinDay);
 
+    std::string sToday = pTodayYmd();
+    if (sDoj > sToday)
+    {
+        sDoj = sToday;
+    }
+
+    std::string sDol = pCalculateDol(sDoj, sTypeEnum);
+    xyz::EmployeeStatus sStatus = xyz::Active;
+
+    if (sDol != "NA" && sToday > sDol)
+    {
+        sStatus = xyz::Inactive;
+    }
+
+    // Create based on type
     if (sTypeEnum == xyz::FullTime)
     {
-        int sLeaves = std::rand() % 25;
-        XyzEmployee* sE = new XyzFullTimeEmployee(sId, sName, sGender, xyz::Active, sDob, sDoj, sLeaves);
-        sE->setDol("NA");
-        mActiveInactiveDeque.pushBack(sE);
+        int sLeavesAvailed = xyz::MinLeaves + (std::rand() % (xyz::MaxLeaves - xyz::MinLeaves + 1));
+        int sLeavesApplied = xyz::MaxLeaves - sLeavesAvailed;
+        XyzEmployee* sFullTimeEmp = new XyzFullTimeEmployee(sId, sName, sGender, sStatus, sDob, sDoj, sLeavesAvailed, sLeavesApplied);
+        sFullTimeEmp->setDol("NA");
+        mActiveInactiveDeque.pushBack(sFullTimeEmp);
     }
     else if (sTypeEnum == xyz::Contractor)
     {
-        int sAgIdx = std::rand() % 3;
-        XyzEmployee* sE = new XyzContractorEmployee(sId, sName, sGender, xyz::Active, sDob, sDoj, (xyz::ContractorAgency)sAgIdx);
-        sE->setDol(pProjectedDol(sDoj, xyz::Contractor));
-        mActiveInactiveDeque.pushBack(sE);
+        int sAgIdx = std::rand() % xyz::ContractorAgencyCount;
+        XyzEmployee* sContractEmp = new XyzContractorEmployee(sId, sName, sGender, sStatus, sDob, sDoj, (xyz::ContractorAgency)sAgIdx);
+        sContractEmp->setDol(sDol);
+        mActiveInactiveDeque.pushBack(sContractEmp);
     }
     else
     {
-        int sColIdx = std::rand() % 7;
-        int sBrIdx  = std::rand() % 3;
-        XyzEmployee* sE = new XyzInternEmployee(sId, sName, sGender, xyz::Active, sDob, sDoj, (xyz::InternCollege)sColIdx, (xyz::InternBranch)sBrIdx);
-        sE->setDol(pProjectedDol(sDoj, xyz::Intern));
-        mActiveInactiveDeque.pushBack(sE);
+        int sColIdx = std::rand() % xyz::InternCollegeCount;
+        int sBrIdx  = std::rand() % xyz::InternBranchCount;
+        XyzEmployee* sInternEmp = new XyzInternEmployee(sId, sName, sGender, sStatus, sDob, sDoj, (xyz::InternCollege)sColIdx, (xyz::InternBranch)sBrIdx);
+        sInternEmp->setDol(sDol);
+        mActiveInactiveDeque.pushBack(sInternEmp);
     }
 
     std::string sTypeStr = (sTypeEnum == xyz::FullTime ? "FullTime" : (sTypeEnum == xyz::Contractor ? "Contractor" : "Intern"));
     std::cout << "Added Random Employee → " << sName << " | ID: " << sId
               << " | Gender: " << sGender << " | Type: " << sTypeStr
-              << " | DOB: " << sDob << " | DOJ: " << sDoj << std::endl;
+              << " | DOB: " << sDob << " | DOJ: " << sDoj
+              << " | DOL: " << sDol << " | Status: "
+              << (sStatus == xyz::Active ? "Active" : "Inactive") << std::endl;
 }
 
 bool XyzEmployeeManager::removeEmployeeById(const std::string& idParm)
 {
     int sIdx = pFindIndexById(idParm);
-    if (sIdx < 0) return false;
-
+    if (sIdx < 0)
+    {
+        return false;
+    }
     XyzEmployee* sEmp = mActiveInactiveDeque[sIdx];
-    if (!sEmp) return false;
-
+    if (!sEmp)
+    {
+         return false;
+    }
     sEmp->setStatus(xyz::Resigned);
 
     // Capture type-specific info when moving to resigned
@@ -330,21 +307,40 @@ bool XyzEmployeeManager::removeEmployeeById(const std::string& idParm)
 
     if (sEmp->getType() == xyz::FullTime)
     {
-        XyzFullTimeEmployee* sF = (XyzFullTimeEmployee*)sEmp;
-        sResigned = new XyzFullTimeEmployee(sF->getId(), sF->getName(), sF->getGender(), xyz::Resigned, sF->getDob(), sF->getDoj(), sF->getLeavesAvailed());
+        XyzFullTimeEmployee* sFullTimeEmp = (XyzFullTimeEmployee*)sEmp;
+        sResigned = new XyzFullTimeEmployee(sFullTimeEmp->getId(),
+                                            sFullTimeEmp->getName(),
+                                            sFullTimeEmp->getGender(),
+                                            xyz::Resigned,
+                                            sFullTimeEmp->getDob(),
+                                            sFullTimeEmp->getDoj(),
+                                            sFullTimeEmp->getLeavesAvailed());
         sResigned->setDol("NA");
     }
     else if (sEmp->getType() == xyz::Contractor)
     {
-        XyzContractorEmployee* sC = (XyzContractorEmployee*)sEmp;
-        sResigned = new XyzContractorEmployee(sC->getId(), sC->getName(), sC->getGender(), xyz::Resigned, sC->getDob(), sC->getDoj(), sC->getAgency());
-        sResigned->setDol(pProjectedDol(sC->getDoj(), xyz::Contractor));
+        XyzContractorEmployee* sContrEmp = (XyzContractorEmployee*)sEmp;
+        sResigned = new XyzContractorEmployee(sContrEmp->getId(),
+                                              sContrEmp->getName(),
+                                              sContrEmp->getGender(),
+                                              xyz::Resigned,
+                                              sContrEmp->getDob(),
+                                              sContrEmp->getDoj(),
+                                              sContrEmp->getAgency());
+        sResigned->setDol(pCalculateDol(sContrEmp->getDoj(), xyz::Contractor));
     }
     else
     {
-        XyzInternEmployee* sI = (XyzInternEmployee*)sEmp;
-        sResigned = new XyzInternEmployee(sI->getId(), sI->getName(), sI->getGender(), xyz::Resigned, sI->getDob(), sI->getDoj(), sI->getCollege(), sI->getBranch());
-        sResigned->setDol(pProjectedDol(sI->getDoj(), xyz::Intern));
+        XyzInternEmployee* sInternEmp = (XyzInternEmployee*)sEmp;
+        sResigned = new XyzInternEmployee(sInternEmp->getId(),
+                                          sInternEmp->getName(),
+                                          sInternEmp->getGender(),
+                                          xyz::Resigned,
+                                          sInternEmp->getDob(),
+                                          sInternEmp->getDoj(),
+                                          sInternEmp->getCollege(),
+                                          sInternEmp->getBranch());
+        sResigned->setDol(pCalculateDol(sInternEmp->getDoj(), xyz::Intern));
     }
 
     mResignedDeque.pushBack(sResigned);
@@ -358,16 +354,23 @@ bool XyzEmployeeManager::removeEmployeeById(const std::string& idParm)
 void XyzEmployeeManager::addLeavesToFullTime(int nParm)
 {
     int sSize = mActiveInactiveDeque.getSize();
-    for (int sIdx = 0; sIdx < sSize; ++sIdx)
+    if(nParm <= 10)
     {
-        XyzEmployee* sEmp = mActiveInactiveDeque[sIdx];
-        if (sEmp && sEmp->getType() == xyz::FullTime)
+        for (int sIdx = 0; sIdx < sSize; ++sIdx)
         {
-            XyzFullTimeEmployee* sF = (XyzFullTimeEmployee*)sEmp;
-            sF->addLeaves(nParm);
+            XyzEmployee* sEmp = mActiveInactiveDeque[sIdx];
+            if (sEmp && sEmp->getType() == xyz::FullTime)
+            {
+                XyzFullTimeEmployee* sF = (XyzFullTimeEmployee*)sEmp;
+                sF->addLeaves(nParm);
+            }
         }
+        std::cout << "Added " << nParm << " leaves to all full-time employees." << std::endl;
     }
-    std::cout << "Added " << nParm << " leaves to all full-time employees." << std::endl;
+    else
+    {
+        std::cout << "Enter the Valid Number of Leaves." << std::endl;
+    }
 }
 
 void XyzEmployeeManager::convertInternToFullTime(const std::string& idParm)
@@ -425,11 +428,10 @@ void XyzEmployeeManager::convertInternToFullTime(const std::string& idParm)
 void XyzEmployeeManager::print(const EmployeeFilter& filterParm) const
 {
     pPrintHeader();
-    // Active/Inactive pool
-    int sN = mActiveInactiveDeque.getSize();
-    for (int sI = 0; sI < sN; ++sI)
+    int sDequeSize = mActiveInactiveDeque.getSize();
+    for (int sIdx = 0; sIdx < sDequeSize; ++sIdx)
     {
-        XyzEmployee* sEmp = mActiveInactiveDeque[sI];
+        XyzEmployee* sEmp = mActiveInactiveDeque[sIdx];
         if (!sEmp)
         {
             continue;
@@ -458,9 +460,9 @@ void XyzEmployeeManager::print(const EmployeeFilter& filterParm) const
 
         pPrintRow(sEmp);
     }
-    // Resigned pool
-    int sR = mResignedDeque.getSize();
-    for (int sIdx = 0; sIdx < sR; ++sIdx)
+
+    int sResignedDequeSz = mResignedDeque.getSize();
+    for (int sIdx = 0; sIdx < sResignedDequeSz; ++sIdx)
     {
         XyzEmployee* sEmp = mResignedDeque[sIdx];
         if (!sEmp)
@@ -491,5 +493,92 @@ void XyzEmployeeManager::print(const EmployeeFilter& filterParm) const
 
         pPrintRow(sEmp);
     }
-    std::cout << "----------------------------------------------------------------------------------------------------------------------------------------\n";
+    std::cout << "----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
+}
+
+//---------- Printing helpers ----------
+void XyzEmployeeManager::pPrintHeader() const
+{
+    using namespace xyz;
+    std::cout << std::left;
+    std::cout << "----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
+    std::cout << "| " << std::setw(NameWidth)          << "Name"
+              << "| " << std::setw(IdWidth)            << "ID"
+              << "| " << std::setw(GenderWidth)        << "Gender"
+              << "| " << std::setw(DobWidth)           << "DOB"
+              << "| " << std::setw(DojWidth)           << "DOJ"
+              << "| " << std::setw(DolWidth)           << "DOL"
+              << "| " << std::setw(TypeWidth)          << "Type"
+              << "| " << std::setw(StatusWidth)        << "Status"
+              << "| " << std::setw(CollegeWidth)       << "College"
+              << "| " << std::setw(BranchWidth)        << "Branch"
+              << "| " << std::setw(CurrLeavesWidth)    << "Leaves Availed"
+              << "| " << std::setw(LeavesAppliedWidth) << "Leaves Applied"
+              << "| " << std::setw(AgencyWidth)        << "Agency"
+              << "|\n";
+    std::cout << "----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
+}
+
+void XyzEmployeeManager::pPrintRow(const XyzEmployee* sEmp) const
+{
+    using namespace xyz;
+    std::cout << std::left;
+
+    std::string sTypeStr   = (sEmp->getType() == FullTime ? "FullTime" :
+                             (sEmp->getType() == Contractor ? "Contractor" : "Intern"));
+    std::string sStatusStr = (sEmp->getStatus() == Active ? "Active" :
+                             (sEmp->getStatus() == Inactive ? "Inactive" : "Resigned"));
+
+    // Default values for all fields
+    std::string sCollege = "NA";
+    std::string sBranch  = "NA";
+    std::string sAgency  = "NA";
+    std::string sLeavesCurr = "NA";
+    std::string sLeavesApplied = "NA";
+
+    if (sEmp->getType() == xyz::FullTime)
+    {
+        const XyzFullTimeEmployee* sF = static_cast<const XyzFullTimeEmployee*>(sEmp);
+        std::ostringstream sCurr, sApp;
+        sCurr << sF->getLeavesAvailed();
+        sApp  << sF->getLeavesApplied();
+        sLeavesCurr    = sCurr.str();
+        sLeavesApplied = sApp.str();
+    }
+
+    else if (sEmp->getType() == Contractor)
+    {
+        const XyzContractorEmployee* sC = static_cast<const XyzContractorEmployee*>(sEmp);
+        xyz::ContractorAgency sAg = sC->getAgency();
+        sAgency = (sAg == Avengers ? "Avengers" :
+                  (sAg == JusticeLeague ? "JusticeLeague" : "XMen"));
+    }
+    else if (sEmp->getType() == Intern)
+    {
+        const XyzInternEmployee* sI = static_cast<const XyzInternEmployee*>(sEmp);
+        sCollege = (sI->getCollege() == IitDelhi ? "IIT Delhi" :
+                   sI->getCollege() == IitMumbai ? "IIT Mumbai" :
+                   sI->getCollege() == IitKanpur ? "IIT Kanpur" :
+                   sI->getCollege() == IitHyderabad ? "IIT Hyderabad" :
+                   sI->getCollege() == NitWarangal ? "NIT Warangal" :
+                   sI->getCollege() == NitTiruchi ? "NIT Tiruchi" : "IIIT Hyderabad");
+        sBranch = (sI->getBranch() == Cse ? "CSE" :
+                  (sI->getBranch() == Csit ? "CSIT" : "ECE"));
+    }
+
+    // Print the row in a uniform format
+    std::cout << "| " << std::setw(NameWidth)          << sEmp->getName()
+              << "| " << std::setw(IdWidth)            << sEmp->getId()
+              << "| " << std::setw(GenderWidth)        << sEmp->getGender()
+              << "| " << std::setw(DobWidth)           << sEmp->getDob()
+              << "| " << std::setw(DojWidth)           << sEmp->getDoj()
+              << "| " << std::setw(DolWidth)           << sEmp->getDol()
+              << "| " << std::setw(TypeWidth)          << sTypeStr
+              << "| " << std::setw(StatusWidth)        << sStatusStr
+              << "| " << std::setw(CollegeWidth)       << sCollege
+              << "| " << std::setw(BranchWidth)        << sBranch
+              << "| " << std::setw(CurrLeavesWidth)    << sLeavesCurr
+              << "| " << std::setw(LeavesAppliedWidth) << sLeavesApplied
+              << "| " << std::setw(AgencyWidth)        << sAgency
+              << "|\n";
 }

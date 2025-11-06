@@ -15,6 +15,10 @@ private:
 
     void pPrintMainMenu() const;
     void pHandleAddEmployee();
+    void pHandleAddRandomEmployee();
+    void pHandleAddSpecificEmployee();
+    void pHandleAddMultipleRandomEmployees();
+
     void pHandleRemoveEmployee();
     void pHandleGetEmpDetails();
     void pHandleOthers();

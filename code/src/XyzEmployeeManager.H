@@ -49,35 +49,38 @@ private:
     static std::string pTodayYmd();
 
     // DOL rules
-    static std::string pProjectedDol(const std::string& dojParm, xyz::EmployeeType typeParm);
+    static std::string pCalculateDol(const std::string& dojParm, xyz::EmployeeType typeParm);
 
     // Printing
     static std::string pPad(const std::string& s, int widthParm);
     void pPrintHeader() const;
     void pPrintRow(const XyzEmployee* sEmp) const;
 
-    // Random helpers (no <vector>)
-    std::string pGenerateRandomName(const std::string& genderParm) const;
+    // Random helpers
+    std::string pGenerateRandomName(const std::string& genderParm);
 
 public:
     XyzEmployeeManager();
     ~XyzEmployeeManager();
 
-    // Adds
-    void addFullTime(const std::string& nameParm, const std::string& genderParm, const std::string& dobParm,
-                     const std::string& dojParm, int leavesParm, const std::string& idParm = "");
+void addFullTime(const std::string& nameParm,
+                 const std::string& genderParm,
+                 const std::string& dobParm,
+                 const std::string& dojParm,
+                 int leavesAvailedParm,
+                 int leavesAppliedParm = 0,
+                 const std::string& idParm = "");
+
     void addContractor(const std::string& nameParm, const std::string& genderParm, const std::string& dobParm,
                        const std::string& dojParm, xyz::ContractorAgency agencyParm, const std::string& idParm = "");
     void addIntern(const std::string& nameParm, const std::string& genderParm, const std::string& dobParm,
                    const std::string& dojParm, xyz::InternCollege collegeParm, xyz::InternBranch branchParm, const std::string& idParm = "");
     void addRandomEmployee(const std::string& idParm = "");
 
-    // Core operations
     bool removeEmployeeById(const std::string& idParm);
     void addLeavesToFullTime(int nParm);
     void convertInternToFullTime(const std::string& idParm);
 
-    // Professional single entry point for printing
     void print(const EmployeeFilter& filterParm) const;
 
     bool isEmpty() const

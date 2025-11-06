@@ -49,6 +49,11 @@ EmployeeDetailBuilder& EmployeeDetailBuilder::addLeaves(int leavesParm)
     mStream << "LeavesAvailed: " << leavesParm << " | ";
     return *this;
 }
+EmployeeDetailBuilder& EmployeeDetailBuilder::addLeavesApplied(int leavesParm)
+{
+    mStream << "LeavesApplied: " << leavesParm << " | ";
+    return *this;
+}
 EmployeeDetailBuilder& EmployeeDetailBuilder::addAgency(xyz::ContractorAgency agencyParm)
 {
     std::string sAgencyStr = (agencyParm == xyz::Avengers ? "Avengers" :

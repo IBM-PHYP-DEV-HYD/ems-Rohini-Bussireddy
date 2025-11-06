@@ -15,13 +15,18 @@ protected:
     xyz::EmployeeStatus mStatus;
     std::string mDob;
     std::string mDoj;
-    std::string mDol; // set by manager
+    std::string mDol;
 
 public:
     XyzEmployee();
-    XyzEmployee(const std::string& idParm, const std::string& nameParm, const std::string& genderParm,
-                xyz::EmployeeType typeParm, xyz::EmployeeStatus statusParm,
-                const std::string& dobParm, const std::string& dojParm, const std::string& dolParm = "NA");
+    XyzEmployee(const std::string& idParm,
+                const std::string& nameParm,
+                const std::string& genderParm,
+                xyz::EmployeeType typeParm,
+                xyz::EmployeeStatus statusParm,
+                const std::string& dobParm,
+                const std::string& dojParm,
+                const std::string& dolParm = "NA");
     virtual ~XyzEmployee();
 
     // XyzEmployeeIF

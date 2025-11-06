@@ -1,8 +1,6 @@
 #include "XyzInternEmployee.H"
 
-XyzInternEmployee::XyzInternEmployee() : XyzEmployee(), mCollege(xyz::IitDelhi), mBranch(xyz::Cse)
-{
-    mType = xyz::Intern;
+XyzInternEmployee::XyzInternEmployee() {
 }
 
 XyzInternEmployee::XyzInternEmployee(const std::string& idParm, const std::string& nameParm, const std::string& genderParm,

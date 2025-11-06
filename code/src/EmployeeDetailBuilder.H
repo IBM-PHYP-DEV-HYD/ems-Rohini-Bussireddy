@@ -20,6 +20,7 @@ public:
     EmployeeDetailBuilder& addDoj(const std::string& dojParm);
     EmployeeDetailBuilder& addDol(const std::string& dolParm);
     EmployeeDetailBuilder& addLeaves(int leavesParm);
+    EmployeeDetailBuilder& addLeavesApplied(int leavesParm);
     EmployeeDetailBuilder& addAgency(xyz::ContractorAgency agencyParm);
     EmployeeDetailBuilder& addCollege(xyz::InternCollege collegeParm);
     EmployeeDetailBuilder& addBranch(xyz::InternBranch branchParm);

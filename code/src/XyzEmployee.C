@@ -4,9 +4,14 @@ XyzEmployee::XyzEmployee()
     : mEmployeeId(""), mName(""), mGender(""), mType(xyz::FullTime), mStatus(xyz::Active),
       mDob(""), mDoj(""), mDol("NA") {}
 
-XyzEmployee::XyzEmployee(const std::string& idParm, const std::string& nameParm, const std::string& genderParm,
-                         xyz::EmployeeType typeParm, xyz::EmployeeStatus statusParm,
-                         const std::string& dobParm, const std::string& dojParm, const std::string& dolParm)
+XyzEmployee::XyzEmployee(const std::string& idParm,
+                         const std::string& nameParm,
+                         const std::string& genderParm,
+                         xyz::EmployeeType typeParm,
+                         xyz::EmployeeStatus statusParm,
+                         const std::string& dobParm,
+                         const std::string& dojParm,
+                         const std::string& dolParm)
     : mEmployeeId(idParm), mName(nameParm), mGender(genderParm), mType(typeParm),
       mStatus(statusParm), mDob(dobParm), mDoj(dojParm), mDol(dolParm) {}
 

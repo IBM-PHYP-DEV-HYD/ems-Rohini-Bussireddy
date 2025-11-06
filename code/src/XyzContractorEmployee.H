@@ -12,8 +12,12 @@ private:
 
 public:
     XyzContractorEmployee();
-    XyzContractorEmployee(const std::string& idParm, const std::string& nameParm, const std::string& genderParm,
-                          xyz::EmployeeStatus statusParm, const std::string& dobParm, const std::string& dojParm,
+    XyzContractorEmployee(const std::string& idParm,
+                          const std::string& nameParm,
+                          const std::string& genderParm,
+                          xyz::EmployeeStatus statusParm,
+                          const std::string& dobParm,
+                          const std::string& dojParm,
                           xyz::ContractorAgency agencyParm);
     ~XyzContractorEmployee();
 
