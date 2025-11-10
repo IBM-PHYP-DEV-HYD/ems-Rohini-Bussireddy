@@ -224,7 +224,7 @@ std::string XyzEmployeeManager::pGenerateRandomName(const std::string& genderPar
 void XyzEmployeeManager::addRandomEmployee(const std::string& idParm)
 {
     int sTypeInt = std::rand() % xyz::EmployeeTypeCount;
-    xyz::EmployeeType sTypeEnum = static_cast<xyz::EmployeeType>(sTypeInt);
+    xyz::EmployeeType sTypeEnum = xyz::EmployeeType(sTypeInt);
     std::string sId = (idParm.empty()) ? pGenerateId(sTypeEnum) : idParm;
 
     std::string sGender = (std::rand() % 2 == 0) ? "M" : "F";
@@ -436,7 +436,6 @@ void XyzEmployeeManager::print(const EmployeeFilter& filterParm) const
         {
             continue;
         }
-
         if (filterParm.mEnableType && sEmp->getType() != filterParm.mType)
         {
             continue;

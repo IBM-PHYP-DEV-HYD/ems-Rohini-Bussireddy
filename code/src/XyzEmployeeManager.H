@@ -12,21 +12,26 @@
 
 struct EmployeeFilter
 {
-    bool mEnableType = false;
-    xyz::EmployeeType mType = xyz::FullTime;
+    unsigned mEnableType       : 1;
+    unsigned mEnableGender     : 1;
+    unsigned mEnableStatus     : 1;
+    unsigned mEnableId         : 1;
+    unsigned mEnableNameSearch : 1;
 
-    bool mEnableGender = false;
+    xyz::EmployeeType mType;
     std::string mGender;
-
-    bool mEnableStatus = false;
-    xyz::EmployeeStatus mStatus = xyz::Active;
-
-    bool mEnableId = false;
+    xyz::EmployeeStatus mStatus;
     std::string mId;
-
-    bool mEnableNameSearch = false;
     std::string mNameSearch;
+
+    EmployeeFilter()
+        : mEnableType(0),
+          mEnableGender(0),
+          mEnableStatus(0),
+          mEnableId(0),
+          mEnableNameSearch(0) {}
 };
+
 
 class XyzEmployeeManager
 {
@@ -35,11 +40,9 @@ private:
     Edll<XyzEmployee*> mResignedDeque;
     int mNextIdCounter;
 
-    // Helpers (private)
     std::string pGenerateId(xyz::EmployeeType typeParm);
     int pFindIndexById(const std::string& idParm) const;
 
-    // Date helpers
     static bool pParseYmd(const std::string& ymdParm, int& sY, int& sM, int& sD);
     static bool pIsLeap(int sY);
     static int  pDaysInMonth(int sY, int sM);
@@ -47,16 +50,8 @@ private:
     static std::string pAddMonths(const std::string& ymdParm, int monthsParm);
     static std::string pAddYears(const std::string& ymdParm, int yearsParm);
     static std::string pTodayYmd();
-
-    // DOL rules
     static std::string pCalculateDol(const std::string& dojParm, xyz::EmployeeType typeParm);
 
-    // Printing
-    static std::string pPad(const std::string& s, int widthParm);
-    void pPrintHeader() const;
-    void pPrintRow(const XyzEmployee* sEmp) const;
-
-    // Random helpers
     std::string pGenerateRandomName(const std::string& genderParm);
 
 public:
@@ -81,6 +76,8 @@ void addFullTime(const std::string& nameParm,
     void addLeavesToFullTime(int nParm);
     void convertInternToFullTime(const std::string& idParm);
 
+    void pPrintHeader() const;
+    void pPrintRow(const XyzEmployee* sEmp) const;
     void print(const EmployeeFilter& filterParm) const;
 
     bool isEmpty() const

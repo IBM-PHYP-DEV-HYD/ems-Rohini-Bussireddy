@@ -8,9 +8,10 @@ namespace xyz
     enum MainMenuChoice
     {
         AddEmployee    = 1,
-        RemoveEmployee = 2,
-        GetEmpDetails  = 3,
-        Others         = 4,
+        MultipleRandomEmployees = 2,
+        RemoveEmployee = 3,
+        GetEmpDetails  = 4,
+        Others         = 5,
         Exit           = -1,
     };
 
@@ -18,7 +19,6 @@ namespace xyz
     {
         RandomEmployee          = 1,
         SpecificEmployee        = 2,
-        MultipleRandomEmployees = 3,
         BackMenu1               = -1,
     };
 

@@ -1,5 +1,23 @@
 #include "EmployeeDetailBuilder.H"
 
+// The Builder Pattern is a design pattern used to construct complex objects step-by-step, rather than in one giant constructor.
+// It allows you to build an object gradually using method chaining, and then “finalize” it with a build() function.
+// without builder we have to write like
+// std::string details = "ID: " + id + " | Name: " + name + " | Type: " + type + " | Status: " + status + ...;
+// EmployeeDetailBuilder sBuilder;
+// sBuilder.addId("XYZ001")
+//         .addName("Aarav Sharma")
+//         .addType(xyz::FullTime)
+//         .addStatus(xyz::Active)
+//         .addGender("M")
+//         .addDob("1998-05-10")
+//         .addDoj("2020-03-15")
+//         .addLeaves(12)
+//         .addLeavesApplied(10);
+// std::string details = sBuilder.build();
+// Appends the field "ID: value | " into an internal ostringstream (mStream).
+// Then returns *this — a reference to the same object.
+
 EmployeeDetailBuilder& EmployeeDetailBuilder::addId(const std::string& idParm)
 {
     mStream << "ID: " << idParm << " | ";
@@ -113,6 +131,8 @@ std::string EmployeeDetailBuilder::build() const
     }
     return sResult;
 }
+
+// This is useful if building multiple employee strings in a loop — you can reuse the same builder object.
 void EmployeeDetailBuilder::clear()
 {
     mStream.str("");

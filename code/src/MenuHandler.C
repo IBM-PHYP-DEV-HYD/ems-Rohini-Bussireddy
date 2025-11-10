@@ -168,9 +168,10 @@ void MenuHandler::pPrintMainMenu() const
     cout << "|           Employee Management System           |\n";
     cout << "--------------------------------------------------\n";
     cout << "| 1. Add an Employee                             |\n";
-    cout << "| 2. Remove an Employee                          |\n";
-    cout << "| 3. Get Employee Details                        |\n";
-    cout << "| 4. Others                                      |\n";
+    cout << "| 2. Add n Number Of Random Employees            |\n";
+    cout << "| 3. Remove an Employee                          |\n";
+    cout << "| 4. Get Employee Details                        |\n";
+    cout << "| 5. Others                                      |\n";
     cout << "| (-1 to Exit)                                   |\n";
     cout << "--------------------------------------------------\n";
 }
@@ -326,7 +327,6 @@ void MenuHandler::pHandleAddEmployee()
     cout << "---------------------------------------------------------\n";
     cout << "| 1. Add Random Employee                                |\n";
     cout << "| 2. Add Specific Employee (FullTime/Contractor/Intern) |\n";
-    cout << "| 3. Add n Number Of Random Employees                   |\n";
     cout << "| (-1 to Go Back)                                       |\n";
     cout << "---------------------------------------------------------\n";
 
@@ -342,10 +342,6 @@ void MenuHandler::pHandleAddEmployee()
             pHandleAddSpecificEmployee();
             break;
 
-        case xyz::MultipleRandomEmployees:
-            pHandleAddMultipleRandomEmployees();
-            break;
-
         case xyz::BackMenu1:
             cout << "Returning to main menu..." << endl;
             return;
@@ -359,6 +355,11 @@ void MenuHandler::pHandleAddEmployee()
 
 void MenuHandler::pHandleRemoveEmployee()
 {
+    if (mManager.isEmpty())
+    {
+        std::cout << "Deque is Empty! Please add employees first." << endl;
+        return;
+    }
     string sId;
     cout << "Employee ID: ";
     cin >> sId;
@@ -370,6 +371,11 @@ void MenuHandler::pHandleRemoveEmployee()
 
 void MenuHandler::pHandleGetEmpDetails()
 {
+    if (mManager.isEmpty())
+    {
+        std::cout << "Deque is Empty! Please add employees first." << endl;
+        return;
+    }
     std::cout << "--------------------------------------------------\n";
     std::cout << "|             Employee Details Menu              |\n";
     std::cout << "--------------------------------------------------\n";
@@ -557,6 +563,10 @@ void MenuHandler::start()
         {
             case xyz::AddEmployee:
                 pHandleAddEmployee();
+                break;
+
+            case xyz::MultipleRandomEmployees:
+                pHandleAddMultipleRandomEmployees();
                 break;
 
             case xyz::RemoveEmployee:
