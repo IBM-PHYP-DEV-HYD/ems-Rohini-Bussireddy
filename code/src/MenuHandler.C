@@ -162,7 +162,7 @@ bool validateDate(const string& dateParm)
     return isValid;
 }
 
-void MenuHandler::pPrintMainMenu() const
+void MenuHandler::pPrintMainMenu()
 {
     cout << "--------------------------------------------------\n";
     cout << "|           Employee Management System           |\n";
@@ -325,8 +325,8 @@ void MenuHandler::pHandleAddEmployee()
     cout << "---------------------------------------------------------\n";
     cout << "|                Add Employee Menu                      |\n";
     cout << "---------------------------------------------------------\n";
-    cout << "| 1. Add Random Employee                                |\n";
-    cout << "| 2. Add Specific Employee (FullTime/Contractor/Intern) |\n";
+    cout << "| 1. Add an Employee at Random                          |\n";
+    cout << "| 2. Add an Employee (F/C/I)                            |\n";
     cout << "| (-1 to Go Back)                                       |\n";
     cout << "---------------------------------------------------------\n";
 
@@ -380,10 +380,10 @@ void MenuHandler::pHandleGetEmpDetails()
     std::cout << "|             Employee Details Menu              |\n";
     std::cout << "--------------------------------------------------\n";
     std::cout << "| 1. All Employees Summary                       |\n";
-    std::cout << "| 2. By Type (FullTime/Contractor/Intern)        |\n";
-    std::cout << "| 3. By Gender                                   |\n";
-    std::cout << "| 4. By Status (Active/Inactive/Resigned)        |\n";
-    std::cout << "| 5. By Employee ID                              |\n";
+    std::cout << "| 2. Employee Summary (F/C/I)                    |\n";
+    std::cout << "| 3. Employee Summary (M/F)                      |\n";
+    std::cout << "| 4. Employee Summary (A/I/R)                    |\n";
+    std::cout << "| 5. Display Employee Details                    |\n";
     std::cout << "| (-1 to Go Back)                                |\n";
     std::cout << "--------------------------------------------------\n";
 
@@ -481,7 +481,7 @@ void MenuHandler::pHandleOthers()
     cout << "|             Other Operations Menu               |\n";
     cout << "---------------------------------------------------\n";
     cout << "| 1. Add 'n' Leaves to Full-Time Employees        |\n";
-    cout << "| 2. Convert an Intern to Full-Time               |\n";
+    cout << "| 2. Convert an Intern to Full-Time Employee      |\n";
     cout << "| 3. Search Employee by ID                        |\n";
     cout << "| 4. Search Employee by Name                      |\n";
     cout << "| (-1 to Go Back)                                 |\n";

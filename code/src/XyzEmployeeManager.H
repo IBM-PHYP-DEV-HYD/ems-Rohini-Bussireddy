@@ -40,17 +40,16 @@ private:
     Edll<XyzEmployee*> mResignedDeque;
     int mNextIdCounter;
 
-    std::string pGenerateId(xyz::EmployeeType typeParm);
+    std::string pGenerateRandomId(xyz::EmployeeType typeParm);
     int pFindIndexById(const std::string& idParm) const;
-
-    static bool pParseYmd(const std::string& ymdParm, int& sY, int& sM, int& sD);
-    static bool pIsLeap(int sY);
-    static int  pDaysInMonth(int sY, int sM);
-    static std::string pYmd(int sY, int sM, int sD);
-    static std::string pAddMonths(const std::string& ymdParm, int monthsParm);
-    static std::string pAddYears(const std::string& ymdParm, int yearsParm);
-    static std::string pTodayYmd();
-    static std::string pCalculateDol(const std::string& dojParm, xyz::EmployeeType typeParm);
+    static bool pParseDate(const std::string& ymdParm, int& yearParm, int& monthParm, int& dayParm);
+    static bool pIsLeapYear(int yearParm);
+    static int  pGetDaysInMonth(int yearParm, int monthParm);
+    static std::string pFormatDate(int yearParm, int monthParm, int dayParm);
+    static std::string pAddMonthsToDate(const std::string& ymdParm, int monthsParm);
+    static std::string pAddYearsToDate(const std::string& ymdParm, int yearsParm);
+    static std::string pGetCurrentDate();
+    static std::string pComputeDolFromDoj(const std::string& dojParm, xyz::EmployeeType typeParm);
 
     std::string pGenerateRandomName(const std::string& genderParm);
 
@@ -58,26 +57,32 @@ public:
     XyzEmployeeManager();
     ~XyzEmployeeManager();
 
-void addFullTime(const std::string& nameParm,
-                 const std::string& genderParm,
-                 const std::string& dobParm,
-                 const std::string& dojParm,
-                 int leavesAvailedParm,
-                 int leavesAppliedParm = 0,
-                 const std::string& idParm = "");
-
-    void addContractor(const std::string& nameParm, const std::string& genderParm, const std::string& dobParm,
-                       const std::string& dojParm, xyz::ContractorAgency agencyParm, const std::string& idParm = "");
-    void addIntern(const std::string& nameParm, const std::string& genderParm, const std::string& dobParm,
-                   const std::string& dojParm, xyz::InternCollege collegeParm, xyz::InternBranch branchParm, const std::string& idParm = "");
+    void addFullTime(const std::string& nameParm,
+                    const std::string& genderParm,
+                    const std::string& dobParm,
+                    const std::string& dojParm,
+                    int leavesAvailedParm,
+                    int leavesAppliedParm = 0,
+                    const std::string& idParm = "");
+    void addContractor(const std::string& nameParm,
+                       const std::string& genderParm,
+                       const std::string& dobParm,
+                       const std::string& dojParm,
+                       xyz::ContractorAgency agencyParm,
+                       const std::string& idParm = "");
+    void addIntern(const std::string& nameParm,
+                   const std::string& genderParm,
+                   const std::string& dobParm,
+                   const std::string& dojParm,
+                   xyz::InternCollege collegeParm,
+                   xyz::InternBranch branchParm,
+                   const std::string& idParm = "");
     void addRandomEmployee(const std::string& idParm = "");
-
     bool removeEmployeeById(const std::string& idParm);
     void addLeavesToFullTime(int nParm);
     void convertInternToFullTime(const std::string& idParm);
-
-    void pPrintHeader() const;
-    void pPrintRow(const XyzEmployee* sEmp) const;
+    void printHeader(int nameWidthParm) const;
+    void printRow(const XyzEmployee* sEmp, int nameWidthParm) const;
     void print(const EmployeeFilter& filterParm) const;
 
     bool isEmpty() const

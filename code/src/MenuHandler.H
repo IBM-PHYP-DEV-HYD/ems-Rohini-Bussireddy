@@ -13,7 +13,7 @@ class MenuHandler
 private:
     XyzEmployeeManager mManager;
 
-    void pPrintMainMenu() const;
+    void pPrintMainMenu();
     void pHandleAddEmployee();
     void pHandleAddRandomEmployee();
     void pHandleAddSpecificEmployee();

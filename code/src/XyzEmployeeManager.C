@@ -24,7 +24,7 @@ XyzEmployeeManager::~XyzEmployeeManager()
     }
 }
 
-std::string XyzEmployeeManager::pGenerateId(xyz::EmployeeType typeParm)
+std::string XyzEmployeeManager::pGenerateRandomId(xyz::EmployeeType typeParm)
 {
     int sNum = mNextIdCounter++;
     std::ostringstream sOss;
@@ -54,31 +54,31 @@ int XyzEmployeeManager::pFindIndexById(const std::string& idParm) const
 }
 
 // ---------- Date helpers ----------
-bool XyzEmployeeManager::pParseYmd(const std::string& ymdParm, int& sYear, int& sMonth, int& sDay)
+bool XyzEmployeeManager::pParseDate(const std::string& ymdParm, int& yearParm, int& monthParm, int& dayParm)
 {
     if (ymdParm.size() < 10)
     {
         return false;
     }
-    sYear = (ymdParm[0]-'0')*1000 + (ymdParm[1]-'0')*100 + (ymdParm[2]-'0')*10 + (ymdParm[3]-'0');
-    sMonth = (ymdParm[5]-'0')*10 + (ymdParm[6]-'0');
-    sDay = (ymdParm[8]-'0')*10 + (ymdParm[9]-'0');
+    yearParm = (ymdParm[0]-'0')*1000 + (ymdParm[1]-'0')*100 + (ymdParm[2]-'0')*10 + (ymdParm[3]-'0');
+    monthParm = (ymdParm[5]-'0')*10 + (ymdParm[6]-'0');
+    dayParm = (ymdParm[8]-'0')*10 + (ymdParm[9]-'0');
     return true;
 }
-bool XyzEmployeeManager::pIsLeap(int yearParm)
+bool XyzEmployeeManager::pIsLeapYear(int yearParm)
 {
     return ((yearParm % 4 == 0 && yearParm % 100 != 0) || (yearParm % 400 == 0));
 }
-int XyzEmployeeManager::pDaysInMonth(int yearParm, int monthParm)
+int XyzEmployeeManager::pGetDaysInMonth(int yearParm, int monthParm)
 {
     static const int sDaysPerMonth[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
     if (monthParm == 2)
     {
-        return pIsLeap(yearParm) ? 29 : 28;
+        return pIsLeapYear(yearParm) ? 29 : 28;
     }
     return sDaysPerMonth[monthParm - 1];
 }
-std::string XyzEmployeeManager::pYmd(int yearParm, int monthParm, int dayParm)
+std::string XyzEmployeeManager::pFormatDate(int yearParm, int monthParm, int dayParm)
 {
     std::ostringstream sStream;
     sStream << std::setfill('0')
@@ -88,10 +88,10 @@ std::string XyzEmployeeManager::pYmd(int yearParm, int monthParm, int dayParm)
     return sStream.str();
 }
 
-std::string XyzEmployeeManager::pAddMonths(const std::string& ymdParm, int monthsParm)
+std::string XyzEmployeeManager::pAddMonthsToDate(const std::string& ymdParm, int monthsParm)
 {
     int sYear, sMonth, sDay;
-    if (!pParseYmd(ymdParm, sYear, sMonth, sDay))
+    if (!pParseDate(ymdParm, sYear, sMonth, sDay))
     {
         return "NA";
     }
@@ -103,41 +103,45 @@ std::string XyzEmployeeManager::pAddMonths(const std::string& ymdParm, int month
     {
         --sNewYear;
     }
-    int sMaxDay = pDaysInMonth(sNewYear, sNewMonth);
+    int sMaxDay = pGetDaysInMonth(sNewYear, sNewMonth);
     if (sDay > sMaxDay)
     {
         sDay = sMaxDay;
     }
-    return pYmd(sNewYear, sNewMonth, sDay);
+    return pFormatDate(sNewYear, sNewMonth, sDay);
 }
-std::string XyzEmployeeManager::pAddYears(const std::string& ymdParm, int yearsParm)
+std::string XyzEmployeeManager::pAddYearsToDate(const std::string& ymdParm, int yearsParm)
 {
     int sYear, sMonth, sDay;
-    if (!pParseYmd(ymdParm, sYear, sMonth, sDay))
+    if (!pParseDate(ymdParm, sYear, sMonth, sDay))
     {
         return "NA";
     }
     int sNewYear = sYear + yearsParm;
-    int sMaxDay = pDaysInMonth(sNewYear, sMonth);
+    int sMaxDay = pGetDaysInMonth(sNewYear, sMonth);
 
     if (sDay > sMaxDay)
     {
         sDay = sMaxDay;
     }
-    return pYmd(sNewYear, sMonth, sDay);
+    return pFormatDate(sNewYear, sMonth, sDay);
 }
-std::string XyzEmployeeManager::pTodayYmd()
+std::string XyzEmployeeManager::pGetCurrentDate()
 {
     std::time_t sNow = std::time(nullptr);
     std::tm* sLt = std::localtime(&sNow);
-    return pYmd(sLt->tm_year + 1900, sLt->tm_mon + 1, sLt->tm_mday);
+    return pFormatDate(sLt->tm_year + 1900, sLt->tm_mon + 1, sLt->tm_mday);
 }
-std::string XyzEmployeeManager::pCalculateDol(const std::string& dojParm, xyz::EmployeeType typeParm)
+std::string XyzEmployeeManager::pComputeDolFromDoj(const std::string& dojParm, xyz::EmployeeType typeParm)
 {
     if (typeParm == xyz::Contractor)
-        return pAddYears(dojParm, 1);
+    {
+        return pAddYearsToDate(dojParm, 1);
+    }
     if (typeParm == xyz::Intern)
-        return pAddMonths(dojParm, 6);
+    {
+        return pAddMonthsToDate(dojParm, 6);
+    }
     return "NA";
 }
 
@@ -149,7 +153,7 @@ void XyzEmployeeManager::addFullTime(const std::string& nameParm,
                                      int leavesAppliedParm,
                                      const std::string& idParm)
 {
-    std::string sId = (idParm.empty()) ? pGenerateId(xyz::FullTime) : idParm;
+    std::string sId = (idParm.empty()) ? pGenerateRandomId(xyz::FullTime) : idParm;
     XyzEmployee* sEmp = new XyzFullTimeEmployee(
         sId,
         nameParm,
@@ -173,7 +177,7 @@ void XyzEmployeeManager::addContractor(const std::string& nameParm,
                                        xyz::ContractorAgency agencyParm,
                                        const std::string& idParm)
 {
-    std::string sId = (idParm.empty()) ? pGenerateId(xyz::Contractor) : idParm;
+    std::string sId = (idParm.empty()) ? pGenerateRandomId(xyz::Contractor) : idParm;
     XyzEmployee* sEmp = new XyzContractorEmployee(
         sId,
         nameParm,
@@ -183,7 +187,7 @@ void XyzEmployeeManager::addContractor(const std::string& nameParm,
         dojParm,
         agencyParm
     );
-    sEmp->setDol(pCalculateDol(dojParm, xyz::Contractor));
+    sEmp->setDol(pComputeDolFromDoj(dojParm, xyz::Contractor));
     mActiveInactiveDeque.pushBack(sEmp);
     std::cout << "Added Contractor with ID: " << sId << std::endl;
 }
@@ -196,7 +200,7 @@ void XyzEmployeeManager::addIntern(const std::string& nameParm,
                                    xyz::InternBranch branchParm,
                                    const std::string& idParm)
 {
-    std::string sId = (idParm.empty()) ? pGenerateId(xyz::Intern) : idParm;
+    std::string sId = (idParm.empty()) ? pGenerateRandomId(xyz::Intern) : idParm;
     XyzEmployee* sEmp = new XyzInternEmployee(
         sId,
         nameParm,
@@ -207,7 +211,7 @@ void XyzEmployeeManager::addIntern(const std::string& nameParm,
         collegeParm,
         branchParm
     );
-    sEmp->setDol(pCalculateDol(dojParm, xyz::Intern));
+    sEmp->setDol(pComputeDolFromDoj(dojParm, xyz::Intern));
     mActiveInactiveDeque.pushBack(sEmp);
     std::cout << "Added Intern with ID: " << sId << std::endl;
 }
@@ -225,7 +229,7 @@ void XyzEmployeeManager::addRandomEmployee(const std::string& idParm)
 {
     int sTypeInt = std::rand() % xyz::EmployeeTypeCount;
     xyz::EmployeeType sTypeEnum = xyz::EmployeeType(sTypeInt);
-    std::string sId = (idParm.empty()) ? pGenerateId(sTypeEnum) : idParm;
+    std::string sId = (idParm.empty()) ? pGenerateRandomId(sTypeEnum) : idParm;
 
     std::string sGender = (std::rand() % 2 == 0) ? "M" : "F";
     std::string sName = pGenerateRandomName(sGender);
@@ -234,20 +238,20 @@ void XyzEmployeeManager::addRandomEmployee(const std::string& idParm)
     int sYear  = xyz::MinBirthYear + (std::rand() % (xyz::MaxBirthYear - xyz::MinBirthYear + 1));
     int sMonth = xyz::MinMonth + (std::rand() % (xyz::MaxMonth - xyz::MinMonth + 1));
     int sDay   = xyz::MinDay + (std::rand() % (xyz::MaxDay - xyz::MinDay + 1));
-    std::string sDob = pYmd(sYear, sMonth, sDay);
+    std::string sDob = pFormatDate(sYear, sMonth, sDay);
 
     int sJoinYear  = sYear + xyz::MinWorkAge + (std::rand() % (xyz::MaxWorkAge - xyz::MinWorkAge + 1));
     int sJoinMonth = xyz::MinMonth + (std::rand() % (xyz::MaxMonth - xyz::MinMonth + 1));
     int sJoinDay   = xyz::MinDay + (std::rand() % (xyz::MaxDay - xyz::MinDay + 1));
-    std::string sDoj = pYmd(sJoinYear, sJoinMonth, sJoinDay);
+    std::string sDoj = pFormatDate(sJoinYear, sJoinMonth, sJoinDay);
 
-    std::string sToday = pTodayYmd();
+    std::string sToday = pGetCurrentDate();
     if (sDoj > sToday)
     {
         sDoj = sToday;
     }
 
-    std::string sDol = pCalculateDol(sDoj, sTypeEnum);
+    std::string sDol = pComputeDolFromDoj(sDoj, sTypeEnum);
     xyz::EmployeeStatus sStatus = xyz::Active;
 
     if (sDol != "NA" && sToday > sDol)
@@ -327,7 +331,7 @@ bool XyzEmployeeManager::removeEmployeeById(const std::string& idParm)
                                               sContrEmp->getDob(),
                                               sContrEmp->getDoj(),
                                               sContrEmp->getAgency());
-        sResigned->setDol(pCalculateDol(sContrEmp->getDoj(), xyz::Contractor));
+        sResigned->setDol(pComputeDolFromDoj(sContrEmp->getDoj(), xyz::Contractor));
     }
     else
     {
@@ -340,7 +344,7 @@ bool XyzEmployeeManager::removeEmployeeById(const std::string& idParm)
                                           sInternEmp->getDoj(),
                                           sInternEmp->getCollege(),
                                           sInternEmp->getBranch());
-        sResigned->setDol(pCalculateDol(sInternEmp->getDoj(), xyz::Intern));
+        sResigned->setDol(pComputeDolFromDoj(sInternEmp->getDoj(), xyz::Intern));
     }
 
     mResignedDeque.pushBack(sResigned);
@@ -391,10 +395,12 @@ void XyzEmployeeManager::convertInternToFullTime(const std::string& idParm)
 
     std::string sDoj = sEmp->getDoj();
     // compute months between sDoj and today
-    std::string sToday = pTodayYmd();
+    std::string sToday = pGetCurrentDate();
 
-    int dY, dM, dD; pParseYmd(sDoj, dY, dM, dD);
-    int tY, tM, tD; pParseYmd(sToday, tY, tM, tD);
+    int dY, dM, dD;
+    pParseDate(sDoj, dY, dM, dD);
+    int tY, tM, tD;
+    pParseDate(sToday, tY, tM, tD);
 
     int sMonthsDiff = (tY - dY) * 12 + (tM - dM);
     if (tD < dD)
@@ -412,7 +418,7 @@ void XyzEmployeeManager::convertInternToFullTime(const std::string& idParm)
     std::string sName = sEmp->getName();
     std::string sGender = sEmp->getGender();
     std::string sDob = sEmp->getDob();
-    std::string sNewId = pGenerateId(xyz::FullTime);
+    std::string sNewId = pGenerateRandomId(xyz::FullTime);
 
     XyzEmployee* sNew = new XyzFullTimeEmployee(sNewId, sName, sGender, xyz::Active, sDob, sDoj, 0);
     sNew->setDol("NA");
@@ -424,12 +430,40 @@ void XyzEmployeeManager::convertInternToFullTime(const std::string& idParm)
     std::cout << "Converted Intern to FullTime. New ID: " << sNewId << std::endl;
 }
 
+std::string truncate(const std::string& str, size_t width)
+{
+    if (str.length() <= width)
+        return str;
+    else
+        return str.substr(0, width - 3) + "...";
+}
 
 void XyzEmployeeManager::print(const EmployeeFilter& filterParm) const
 {
-    pPrintHeader();
-    int sDequeSize = mActiveInactiveDeque.getSize();
-    for (int sIdx = 0; sIdx < sDequeSize; ++sIdx)
+    // Calculate the dynamic NameWidth
+    int dynamicNameWidth = xyz::NameWidth;
+    for (int sIdx = 0; sIdx < mActiveInactiveDeque.getSize(); ++sIdx)
+    {
+        const XyzEmployee* sEmp = mActiveInactiveDeque[sIdx];
+        if (sEmp && (int)sEmp->getName().size() > dynamicNameWidth)
+        {
+            dynamicNameWidth = sEmp->getName().size();
+        }
+    }
+
+    for (int sIdx = 0; sIdx < mResignedDeque.getSize(); ++sIdx)
+    {
+        const XyzEmployee* sEmp = mResignedDeque[sIdx];
+        if (sEmp && (int)sEmp->getName().size() > dynamicNameWidth)
+        {
+            dynamicNameWidth = sEmp->getName().size();
+        }
+    }
+    std::cout <<"width of the name is :" << dynamicNameWidth << std::endl;
+    // Print the table header with adjusted width
+    printHeader(dynamicNameWidth);
+
+    for (int sIdx = 0; sIdx < mActiveInactiveDeque.getSize(); ++sIdx)
     {
         XyzEmployee* sEmp = mActiveInactiveDeque[sIdx];
         if (!sEmp)
@@ -456,19 +490,16 @@ void XyzEmployeeManager::print(const EmployeeFilter& filterParm) const
         {
             continue;
         }
-
-        pPrintRow(sEmp);
+        printRow(sEmp, dynamicNameWidth);
     }
 
-    int sResignedDequeSz = mResignedDeque.getSize();
-    for (int sIdx = 0; sIdx < sResignedDequeSz; ++sIdx)
+    for (int sIdx = 0; sIdx < mResignedDeque.getSize(); ++sIdx)
     {
         XyzEmployee* sEmp = mResignedDeque[sIdx];
         if (!sEmp)
         {
             continue;
         }
-
         if (filterParm.mEnableType && sEmp->getType() != filterParm.mType)
         {
             continue;
@@ -489,19 +520,18 @@ void XyzEmployeeManager::print(const EmployeeFilter& filterParm) const
         {
             continue;
         }
-
-        pPrintRow(sEmp);
+        printRow(sEmp, dynamicNameWidth);
     }
-    std::cout << "----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
+    std::cout << "------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
 }
 
 //---------- Printing helpers ----------
-void XyzEmployeeManager::pPrintHeader() const
+void XyzEmployeeManager::printHeader(int nameWidthParm) const
 {
     using namespace xyz;
     std::cout << std::left;
-    std::cout << "----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
-    std::cout << "| " << std::setw(NameWidth)          << "Name"
+    std::cout << "------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
+    std::cout << "| " << std::setw(nameWidthParm)      << "Name"
               << "| " << std::setw(IdWidth)            << "ID"
               << "| " << std::setw(GenderWidth)        << "Gender"
               << "| " << std::setw(DobWidth)           << "DOB"
@@ -515,10 +545,10 @@ void XyzEmployeeManager::pPrintHeader() const
               << "| " << std::setw(LeavesAppliedWidth) << "Leaves Applied"
               << "| " << std::setw(AgencyWidth)        << "Agency"
               << "|\n";
-    std::cout << "----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
+    std::cout << "------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
 }
 
-void XyzEmployeeManager::pPrintRow(const XyzEmployee* sEmp) const
+void XyzEmployeeManager::printRow(const XyzEmployee* sEmp, int nameWidthParm) const
 {
     using namespace xyz;
     std::cout << std::left;
@@ -538,11 +568,11 @@ void XyzEmployeeManager::pPrintRow(const XyzEmployee* sEmp) const
     if (sEmp->getType() == xyz::FullTime)
     {
         const XyzFullTimeEmployee* sF = static_cast<const XyzFullTimeEmployee*>(sEmp);
-        std::ostringstream sCurr, sApp;
+        std::ostringstream sCurr, sApplied;
         sCurr << sF->getLeavesAvailed();
-        sApp  << sF->getLeavesApplied();
+        sApplied  << sF->getLeavesApplied();
         sLeavesCurr    = sCurr.str();
-        sLeavesApplied = sApp.str();
+        sLeavesApplied = sApplied.str();
     }
 
     else if (sEmp->getType() == Contractor)
@@ -556,17 +586,17 @@ void XyzEmployeeManager::pPrintRow(const XyzEmployee* sEmp) const
     {
         const XyzInternEmployee* sI = static_cast<const XyzInternEmployee*>(sEmp);
         sCollege = (sI->getCollege() == IitDelhi ? "IIT Delhi" :
-                   sI->getCollege() == IitMumbai ? "IIT Mumbai" :
-                   sI->getCollege() == IitKanpur ? "IIT Kanpur" :
-                   sI->getCollege() == IitHyderabad ? "IIT Hyderabad" :
-                   sI->getCollege() == NitWarangal ? "NIT Warangal" :
-                   sI->getCollege() == NitTiruchi ? "NIT Tiruchi" : "IIIT Hyderabad");
+                    sI->getCollege() == IitMumbai ? "IIT Mumbai" :
+                    sI->getCollege() == IitKanpur ? "IIT Kanpur" :
+                    sI->getCollege() == IitHyderabad ? "IIT Hyderabad" :
+                    sI->getCollege() == NitWarangal ? "NIT Warangal" :
+                    sI->getCollege() == NitTiruchi ? "NIT Tiruchi" : "IIIT Hyderabad");
         sBranch = (sI->getBranch() == Cse ? "CSE" :
                   (sI->getBranch() == Csit ? "CSIT" : "ECE"));
     }
 
     // Print the row in a uniform format
-    std::cout << "| " << std::setw(NameWidth)          << sEmp->getName()
+    std::cout << "| " << std::setw(nameWidthParm)      << sEmp->getName()
               << "| " << std::setw(IdWidth)            << sEmp->getId()
               << "| " << std::setw(GenderWidth)        << sEmp->getGender()
               << "| " << std::setw(DobWidth)           << sEmp->getDob()

@@ -123,7 +123,7 @@ namespace xyz
         BranchWidth        = 10,
         CurrLeavesWidth    = 16,
         LeavesAppliedWidth = 16,
-        AgencyWidth        = 12
+        AgencyWidth        = 14
     };
     enum EmployeeFirstName
     {
@@ -137,7 +137,7 @@ namespace xyz
     enum EmployeeLastName
     {
         Sharma, Verma, Patel, Mehta, Reddy, Nair, Kumar, Singh, Das, Chopra,
-        Gupta, Bhat, Joshi, Rao, Iyer, Menon, Naidu, Pillai, Agarwal, Mukherjee,
+        Gupta, Bhat, Joshi, Rao, Iyer, Menon, Naidu, Pillai, Agarwal, Mukherjeevarma,
         EmployeeLastNameCount
     };
 
@@ -150,7 +150,7 @@ namespace xyz
 
     inline const char* sEmpLastNames[EmployeeLastNameCount] = {
         "Sharma","Verma","Patel","Mehta","Reddy","Nair","Kumar","Singh","Das","Chopra",
-        "Gupta","Bhat","Joshi","Rao","Iyer","Menon","Naidu","Pillai","Agarwal","Mukherjee"
+        "Gupta","Bhat","Joshi","Rao","Iyer","Menon","Naidu","Pillai","Agarwal","Mukherjeevarma"
     };
 }
 
