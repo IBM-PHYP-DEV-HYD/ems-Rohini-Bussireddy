@@ -1,6 +1,10 @@
 #include "XyzContractorEmployee.H"
 
-XyzContractorEmployee::XyzContractorEmployee() {
+XyzContractorEmployee::XyzContractorEmployee()
+    : XyzEmployee(),
+      mAgency(xyz::Avengers)
+{
+
 }
 
 XyzContractorEmployee::XyzContractorEmployee(const std::string& idParm,

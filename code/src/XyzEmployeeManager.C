@@ -24,6 +24,7 @@ XyzEmployeeManager::~XyzEmployeeManager()
     }
 }
 
+// Generates a unique employee ID like "XYZ0001F" based on employee type (FullTime, Contractor, or Intern)
 std::string XyzEmployeeManager::pGenerateRandomId(xyz::EmployeeType typeParm)
 {
     int sNum = mNextIdCounter++;
@@ -39,6 +40,7 @@ std::string XyzEmployeeManager::pGenerateRandomId(xyz::EmployeeType typeParm)
     return sId;
 }
 
+// Finds the index of an employee in the active list using their ID, returns -1 if not found
 int XyzEmployeeManager::pFindIndexById(const std::string& idParm) const
 {
     int sSize = mActiveInactiveDeque.getSize();
@@ -53,7 +55,7 @@ int XyzEmployeeManager::pFindIndexById(const std::string& idParm) const
     return -1;
 }
 
-// ---------- Date helpers ----------
+// Breaks a date string (YYYY-MM-DD) into separate year, month, and day values
 bool XyzEmployeeManager::pParseDate(const std::string& ymdParm, int& yearParm, int& monthParm, int& dayParm)
 {
     if (ymdParm.size() < 10)
@@ -65,10 +67,14 @@ bool XyzEmployeeManager::pParseDate(const std::string& ymdParm, int& yearParm, i
     dayParm = (ymdParm[8]-'0')*10 + (ymdParm[9]-'0');
     return true;
 }
+
+// Checks whether a given year is a leap year
 bool XyzEmployeeManager::pIsLeapYear(int yearParm)
 {
     return ((yearParm % 4 == 0 && yearParm % 100 != 0) || (yearParm % 400 == 0));
 }
+
+// Returns how many days are in a given month of a specific year
 int XyzEmployeeManager::pGetDaysInMonth(int yearParm, int monthParm)
 {
     static const int sDaysPerMonth[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
@@ -78,6 +84,8 @@ int XyzEmployeeManager::pGetDaysInMonth(int yearParm, int monthParm)
     }
     return sDaysPerMonth[monthParm - 1];
 }
+
+// Combines year, month, and day values into a string formatted as "YYYY-MM-DD"
 std::string XyzEmployeeManager::pFormatDate(int yearParm, int monthParm, int dayParm)
 {
     std::ostringstream sStream;
@@ -88,6 +96,7 @@ std::string XyzEmployeeManager::pFormatDate(int yearParm, int monthParm, int day
     return sStream.str();
 }
 
+// Adds a certain number of months to a given date string and returns the new date
 std::string XyzEmployeeManager::pAddMonthsToDate(const std::string& ymdParm, int monthsParm)
 {
     int sYear, sMonth, sDay;
@@ -110,6 +119,8 @@ std::string XyzEmployeeManager::pAddMonthsToDate(const std::string& ymdParm, int
     }
     return pFormatDate(sNewYear, sNewMonth, sDay);
 }
+
+// Adds a certain number of years to a given date string and returns the new date
 std::string XyzEmployeeManager::pAddYearsToDate(const std::string& ymdParm, int yearsParm)
 {
     int sYear, sMonth, sDay;
@@ -126,12 +137,17 @@ std::string XyzEmployeeManager::pAddYearsToDate(const std::string& ymdParm, int 
     }
     return pFormatDate(sNewYear, sMonth, sDay);
 }
+
+// Gets the current system date in the format "YYYY-MM-DD"
 std::string XyzEmployeeManager::pGetCurrentDate()
 {
     std::time_t sNow = std::time(nullptr);
     std::tm* sLt = std::localtime(&sNow);
     return pFormatDate(sLt->tm_year + 1900, sLt->tm_mon + 1, sLt->tm_mday);
 }
+
+// Calculates Date of Leaving (DOL) based on employee type
+// Contractor: +1 year, Intern: +6 months, FullTime: returns "NA"
 std::string XyzEmployeeManager::pComputeDolFromDoj(const std::string& dojParm, xyz::EmployeeType typeParm)
 {
     if (typeParm == xyz::Contractor)
@@ -225,15 +241,19 @@ std::string XyzEmployeeManager::pGenerateRandomName(const std::string& genderPar
     return sFirst + " " + sLast;
 }
 
-void XyzEmployeeManager::addRandomEmployee(const std::string& idParm)
+void XyzEmployeeManager::addRandomEmployee(bool isSpecific, int specificType)
 {
     int sTypeInt = std::rand() % xyz::EmployeeTypeCount;
     xyz::EmployeeType sTypeEnum = xyz::EmployeeType(sTypeInt);
-    std::string sId = (idParm.empty()) ? pGenerateRandomId(sTypeEnum) : idParm;
+    std::string sId = pGenerateRandomId(sTypeEnum);
 
     std::string sGender = (std::rand() % 2 == 0) ? "M" : "F";
     std::string sName = pGenerateRandomName(sGender);
 
+    if ((int)sName.size() > mMaxNameWidth)
+    {
+        mMaxNameWidth = sName.size();
+    }
     // DOB + DOJ generation
     int sYear  = xyz::MinBirthYear + (std::rand() % (xyz::MaxBirthYear - xyz::MinBirthYear + 1));
     int sMonth = xyz::MinMonth + (std::rand() % (xyz::MaxMonth - xyz::MinMonth + 1));
@@ -349,7 +369,6 @@ bool XyzEmployeeManager::removeEmployeeById(const std::string& idParm)
 
     mResignedDeque.pushBack(sResigned);
     mActiveInactiveDeque.removeAtMiddle(sIdx);
-    delete sEmp;
 
     std::cout << "Employee " << idParm << " marked as Resigned and moved to Resigned list.\n";
     return true;
@@ -430,36 +449,10 @@ void XyzEmployeeManager::convertInternToFullTime(const std::string& idParm)
     std::cout << "Converted Intern to FullTime. New ID: " << sNewId << std::endl;
 }
 
-std::string truncate(const std::string& str, size_t width)
-{
-    if (str.length() <= width)
-        return str;
-    else
-        return str.substr(0, width - 3) + "...";
-}
-
 void XyzEmployeeManager::print(const EmployeeFilter& filterParm) const
 {
-    // Calculate the dynamic NameWidth
-    int dynamicNameWidth = xyz::NameWidth;
-    for (int sIdx = 0; sIdx < mActiveInactiveDeque.getSize(); ++sIdx)
-    {
-        const XyzEmployee* sEmp = mActiveInactiveDeque[sIdx];
-        if (sEmp && (int)sEmp->getName().size() > dynamicNameWidth)
-        {
-            dynamicNameWidth = sEmp->getName().size();
-        }
-    }
+    int dynamicNameWidth = std::max(mMaxNameWidth, (int)xyz::NameWidth);
 
-    for (int sIdx = 0; sIdx < mResignedDeque.getSize(); ++sIdx)
-    {
-        const XyzEmployee* sEmp = mResignedDeque[sIdx];
-        if (sEmp && (int)sEmp->getName().size() > dynamicNameWidth)
-        {
-            dynamicNameWidth = sEmp->getName().size();
-        }
-    }
-    std::cout <<"width of the name is :" << dynamicNameWidth << std::endl;
     // Print the table header with adjusted width
     printHeader(dynamicNameWidth);
 
@@ -522,7 +515,7 @@ void XyzEmployeeManager::print(const EmployeeFilter& filterParm) const
         }
         printRow(sEmp, dynamicNameWidth);
     }
-    std::cout << "------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
+    std::cout << "---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
 }
 
 //---------- Printing helpers ----------
@@ -530,7 +523,7 @@ void XyzEmployeeManager::printHeader(int nameWidthParm) const
 {
     using namespace xyz;
     std::cout << std::left;
-    std::cout << "------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
+    std::cout << "---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
     std::cout << "| " << std::setw(nameWidthParm)      << "Name"
               << "| " << std::setw(IdWidth)            << "ID"
               << "| " << std::setw(GenderWidth)        << "Gender"
@@ -545,7 +538,7 @@ void XyzEmployeeManager::printHeader(int nameWidthParm) const
               << "| " << std::setw(LeavesAppliedWidth) << "Leaves Applied"
               << "| " << std::setw(AgencyWidth)        << "Agency"
               << "|\n";
-    std::cout << "------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
+    std::cout << "---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
 }
 
 void XyzEmployeeManager::printRow(const XyzEmployee* sEmp, int nameWidthParm) const

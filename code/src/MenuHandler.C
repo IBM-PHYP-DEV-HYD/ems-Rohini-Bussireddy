@@ -178,17 +178,12 @@ void MenuHandler::pPrintMainMenu()
 
 void MenuHandler::pHandleAddRandomEmployee()
 {
-    string sId;
-    while (!validateEmployeeID(sId))
-    {
-        cout << "Invalid ID format! Try again: ";
-        getline(cin, sId);
-    }
-    mManager.addRandomEmployee(sId);
+    mManager.addRandomEmployee(false);
 }
 
 void MenuHandler::pHandleAddSpecificEmployee()
 {
+    string sId;
     int sType;
     bool validType = false;
     while (!validType)
@@ -203,96 +198,7 @@ void MenuHandler::pHandleAddSpecificEmployee()
             cout << "Invalid type! Try Again" << endl;
         }
     }
-
-    string sId;
-    bool validID = false;
-    while (!validID)
-    {
-        cout << "Enter ID: ";
-        getline(cin, sId);
-        if (validateEmployeeID(sId))
-        {
-            validID = true;
-        }
-        else
-        {
-            cout << "Invalid ID format!" << endl;
-        }
-    }
-
-    string sName;
-    while (true)
-    {
-        cout << "Enter Name: ";
-        getline(cin, sName);
-        if (validateName(sName))
-        {
-            break;
-        }
-        cout << "Invalid name!" << endl;
-    }
-
-    string sGender;
-    while (true)
-    {
-        cout << "Enter Gender (M/F): ";
-        getline(cin, sGender);
-        if (validateGender(sGender))
-        {
-            break;
-        }
-        cout << "Invalid gender!" << endl;
-    }
-
-    string sDob;
-    while (true)
-    {
-        cout << "Enter DOB (YYYY-MM-DD): ";
-        getline(cin, sDob);
-        if (validateDate(sDob))
-        {
-            break;
-        }
-        cout << "Invalid date format!" << endl;
-    }
-
-    string sDoj;
-    while (true)
-    {
-        cout << "Enter DOJ (YYYY-MM-DD): ";
-        getline(cin, sDoj);
-        if (validateDate(sDoj))
-        {
-            break;
-        }
-        cout << "Invalid date format!" << endl;
-    }
-
-    // Employee creation by type
-    switch (sType)
-    {
-        case xyz::FullTime:
-        {
-            int sLeavesAvailed = safeInput<int>("Leaves Availed: ");
-            int sLeavesApplied = safeInput<int>("Leaves Applied: ");
-            mManager.addFullTime(sName, sGender, sDob, sDoj, sLeavesAvailed, sLeavesApplied, sId);
-            break;
-        }
-
-        case xyz::Contractor:
-        {
-            int sAgency = safeInput<int>("Agency (0=Avengers,1=JusticeLeague,2=XMen): ");
-            mManager.addContractor(sName, sGender, sDob, sDoj, (xyz::ContractorAgency)sAgency, sId);
-            break;
-        }
-        case xyz::Intern:
-        {
-            int sCollege = safeInput<int>("College (0-6): ");
-            int sBranch  = safeInput<int>("Branch (0-2): ");
-            mManager.addIntern(sName, sGender, sDob, sDoj, (xyz::InternCollege)sCollege, (xyz::InternBranch)sBranch, sId);
-            break;
-        }
-    }
+    mManager.addRandomEmployee(true, sType);
 }
 
 void MenuHandler::pHandleAddMultipleRandomEmployees()

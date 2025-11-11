@@ -39,6 +39,7 @@ private:
     Edll<XyzEmployee*> mActiveInactiveDeque;
     Edll<XyzEmployee*> mResignedDeque;
     int mNextIdCounter;
+    int mMaxNameWidth = xyz::NameWidth;
 
     std::string pGenerateRandomId(xyz::EmployeeType typeParm);
     int pFindIndexById(const std::string& idParm) const;
@@ -77,7 +78,7 @@ public:
                    xyz::InternCollege collegeParm,
                    xyz::InternBranch branchParm,
                    const std::string& idParm = "");
-    void addRandomEmployee(const std::string& idParm = "");
+    void addRandomEmployee(bool isSpecific = false, int specificType = -1);
     bool removeEmployeeById(const std::string& idParm);
     void addLeavesToFullTime(int nParm);
     void convertInternToFullTime(const std::string& idParm);

@@ -29,10 +29,6 @@ public:
     int getLeavesApplied() const;
 
     void addLeaves(int leavesParm);
-    void applyLeaves(int leavesParm);
-
-    void setLeavesAvailed(int leavesParm);
-    void setLeavesApplied(int leavesParm);
 
     std::string getDetails() const override;
 };
